@@ -2,7 +2,7 @@
 
 Every member value here is also a Postgres enum value in the target schema
 (see MIGRATION_PLAN.md §2), so the wire format is stable across the migration.
-Values are English internal codes; user-facing Italian text lives in voco.locale.
+Values are English internal codes; user-facing Italian text lives in yquo.locale.
 """
 
 from __future__ import annotations
@@ -62,7 +62,7 @@ class Unit(StrEnum):
 
 
 class ProfessionalChannel(StrEnum):
-    """How the professional reaches Voco. The entire product surface."""
+    """How the professional reaches YQuo. The entire product surface."""
 
     WHATSAPP = "whatsapp"
     VOICE = "voice"

@@ -18,7 +18,7 @@ from uuid import UUID, uuid4
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
-from voco.domain.enums import (
+from yquo.domain.enums import (
     Channel,
     ClientQuoteStatus,
     Direction,
@@ -33,7 +33,7 @@ from voco.domain.enums import (
     Unit,
     Urgency,
 )
-from voco.domain.values import (
+from yquo.domain.values import (
     Actor,
     Address,
     Confidence,
@@ -65,7 +65,7 @@ class MarkupRule(ValueObject):
     """How a professional prices a job for their end client.
 
     DEMO DATA: seeded percentages and rates are illustrative only. They are the
-    professional's own commercial choice, not a rule Voco imposes.
+    professional's own commercial choice, not a rule YQuo imposes.
     """
 
     default_material_markup_pct: Percent

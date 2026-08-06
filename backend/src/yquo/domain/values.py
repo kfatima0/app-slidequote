@@ -11,7 +11,7 @@ from typing import Annotated, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from voco.domain.enums import ActorKind
+from yquo.domain.enums import ActorKind
 
 CENTS = Decimal("0.01")
 

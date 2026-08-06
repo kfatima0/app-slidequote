@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from datetime import datetime
     from uuid import UUID
 
-    from voco.domain.entities import (
+    from yquo.domain.entities import (
         AuditRecord,
         ClientQuote,
         ConversationMessage,
@@ -35,8 +35,8 @@ if TYPE_CHECKING:
         Quote,
         Supplier,
     )
-    from voco.domain.enums import ClientQuoteStatus, InvoiceStatus, OrderStatus
-    from voco.domain.values import Actor
+    from yquo.domain.enums import ClientQuoteStatus, InvoiceStatus, OrderStatus
+    from yquo.domain.values import Actor
 
 
 class ProfessionalRepository(Protocol):

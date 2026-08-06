@@ -1,4 +1,4 @@
-# MIGRATION_PLAN.md — making Voco real
+# MIGRATION_PLAN.md — making YQuo real
 
 Living document. Updated in the same commit as the code it describes.
 
@@ -20,15 +20,15 @@ reach into business logic.
 
 | Port | Flag | Mock today | Target | Files touched | Effort | Key risk |
 |---|---|---|---|---|---|---|
-| Repositories (×10) | `VOCO_ADAPTER_PERSISTENCE` | `adapters/memory/` | Supabase Postgres | `adapters/supabase/`, `composition.py` | L | Transaction boundaries — see §2.4 |
-| `MessagingPort` | `VOCO_ADAPTER_MESSAGING` | in-app simulator | Twilio WhatsApp | `adapters/twilio/`, `api/webhooks.py`, `composition.py` | M | Template approval lead time (§3) |
-| `InterpreterPort` | `VOCO_ADAPTER_INTERPRETER` | rule/keyword parser | OpenAI structured outputs | `adapters/openai/interpreter.py`, `composition.py` | S | Extraction quality vs. the mock's test suite (§4) |
-| `CatalogMatcherPort` | `VOCO_ADAPTER_MATCHER` | fuzzy over seed catalog | pgvector similarity | `adapters/supabase/matcher.py`, embeddings job | M | Match accuracy; needs a labelled set (§4) |
-| `SupplierAgent` — ecommerce | `VOCO_ADAPTER_AGENT_ECOMMERCE` | seeded price lookup | per-supplier integration | `adapters/agents/ecommerce/` | L | One integration per supplier; no shared API |
-| `SupplierAgent` — email | `VOCO_ADAPTER_AGENT_EMAIL` | scripted RFQ thread | IMAP/SMTP + LLM parsing | `adapters/agents/email/` | M | Reply parsing, PDF attachments |
-| `SupplierAgent` — voice | `VOCO_ADAPTER_AGENT_VOICE` | scripted transcript | OpenAI Realtime + Twilio Media Streams | `adapters/agents/voice/` | XL | IVR, consent, cost caps (§4) |
-| `CompliancePort` | `VOCO_ADAPTER_COMPLIANCE` | fake SDI receipts | SDI via intermediary | `adapters/sdi/` | M | **Blocked on compliance review (§6)** |
-| `Clock` | `VOCO_CLOCK` | accelerated | system clock | `adapters/clock/` | XS | Acceleration must be impossible in prod config |
+| Repositories (×10) | `YQUO_ADAPTER_PERSISTENCE` | `adapters/memory/` | Supabase Postgres | `adapters/supabase/`, `composition.py` | L | Transaction boundaries — see §2.4 |
+| `MessagingPort` | `YQUO_ADAPTER_MESSAGING` | in-app simulator | Twilio WhatsApp | `adapters/twilio/`, `api/webhooks.py`, `composition.py` | M | Template approval lead time (§3) |
+| `InterpreterPort` | `YQUO_ADAPTER_INTERPRETER` | rule/keyword parser | OpenAI structured outputs | `adapters/openai/interpreter.py`, `composition.py` | S | Extraction quality vs. the mock's test suite (§4) |
+| `CatalogMatcherPort` | `YQUO_ADAPTER_MATCHER` | fuzzy over seed catalog | pgvector similarity | `adapters/supabase/matcher.py`, embeddings job | M | Match accuracy; needs a labelled set (§4) |
+| `SupplierAgent` — ecommerce | `YQUO_ADAPTER_AGENT_ECOMMERCE` | seeded price lookup | per-supplier integration | `adapters/agents/ecommerce/` | L | One integration per supplier; no shared API |
+| `SupplierAgent` — email | `YQUO_ADAPTER_AGENT_EMAIL` | scripted RFQ thread | IMAP/SMTP + LLM parsing | `adapters/agents/email/` | M | Reply parsing, PDF attachments |
+| `SupplierAgent` — voice | `YQUO_ADAPTER_AGENT_VOICE` | scripted transcript | OpenAI Realtime + Twilio Media Streams | `adapters/agents/voice/` | XL | IVR, consent, cost caps (§4) |
+| `CompliancePort` | `YQUO_ADAPTER_COMPLIANCE` | fake SDI receipts | SDI via intermediary | `adapters/sdi/` | M | **Blocked on compliance review (§6)** |
+| `Clock` | `YQUO_CLOCK` | accelerated | system clock | `adapters/clock/` | XS | Acceleration must be impossible in prod config |
 
 Acceptance criteria per row, and the parallel-run strategy that keeps mocks available
 per environment, are in §7.
@@ -75,7 +75,7 @@ create extension if not exists pgcrypto;   -- gen_random_uuid()
 create extension if not exists vector;     -- pgvector
 
 -- ---------------------------------------------------------------------------
--- enums  (1:1 with voco/domain/enums.py)
+-- enums  (1:1 with yquo/domain/enums.py)
 -- ---------------------------------------------------------------------------
 create type channel              as enum ('ecommerce','voice','email');
 create type order_status         as enum ('received','quoting','awaiting_confirmation',

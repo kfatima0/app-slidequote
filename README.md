@@ -1,11 +1,11 @@
-# Voco
+# YQuo
 
 Italian tradespeople — electricians, plumbers, *caldaisti* — lose hours every week
 phoning suppliers for material prices, waiting on callbacks, and re-keying the same
 order into different portals.
 
-Voco removes that work. **The entire product surface is a phone number.** A professional
-sends a WhatsApp message describing what they need; Voco interprets it, canvasses several
+YQuo removes that work. **The entire product surface is a phone number.** A professional
+sends a WhatsApp message describing what they need; YQuo interprets it, canvasses several
 suppliers *in parallel* — each over whatever channel that supplier actually uses, web shop,
 phone or email — ranks the quotes that come back, sends the best one for confirmation, and
 places the order.
@@ -49,7 +49,7 @@ There is no application to start yet. This section becomes the demo script once 
 ## Layout
 
 ```
-backend/src/voco/
+backend/src/yquo/
   domain/     pure business logic — no I/O, no clock, no adapters
   ports/      interfaces the domain depends on
 tests/        the invariants, not smoke tests

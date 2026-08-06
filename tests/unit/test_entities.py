@@ -13,7 +13,7 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from voco.domain.entities import (
+from yquo.domain.entities import (
     AuditRecord,
     NormalizedQuote,
     Order,
@@ -21,8 +21,8 @@ from voco.domain.entities import (
     QuoteLineItem,
     StructuredRequest,
 )
-from voco.domain.enums import ActorKind, Channel, Unit
-from voco.domain.values import Actor, Address, DocumentTotals, VatBucket, to_money
+from yquo.domain.enums import ActorKind, Channel, Unit
+from yquo.domain.values import Actor, Address, DocumentTotals, VatBucket, to_money
 
 NOW = datetime(2026, 3, 2, 9, 30, tzinfo=UTC)
 
