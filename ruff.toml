@@ -1,0 +1,28 @@
+# Root-level so that backend/src and tests/ are linted under one configuration
+# and `yquo` is recognised as first-party from both. Mirrors pytest.ini living here.
+
+src = ["backend/src"]
+line-length = 100
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "I", "N", "UP", "B", "A", "C4", "SIM", "RUF", "ANN", "TID"]
+ignore = ["ANN401"]
+
+[lint.flake8-tidy-imports.banned-api]
+# The architectural boundary. Banned globally, then re-permitted below for the
+# layers whose job is to know about adapters. tests/test_architecture.py states
+# the same rule directly, since this one can only express it by exception.
+"yquo.adapters".msg = "domain/ and app/ must depend on ports only, never on adapters."
+
+[lint.per-file-ignores]
+# Adapters are adapters; composition wires them up; the API and seed loader
+# build the container; tests assemble real objects. All legitimately import them.
+"backend/src/yquo/adapters/**" = ["TID251"]
+"backend/src/yquo/composition.py" = ["TID251"]
+"backend/src/yquo/api/**" = ["TID251"]
+"backend/src/yquo/seed/**" = ["TID251"]
+"tests/**" = ["TID251"]
+
+[lint.isort]
+known-first-party = ["yquo"]

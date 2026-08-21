@@ -26,7 +26,8 @@ a rewrite. See [MIGRATION_PLAN.md](MIGRATION_PLAN.md).
 | ✅ Repository ports | Ten async Protocols; the in-memory → Supabase swap is mechanical |
 | ✅ Draft Supabase schema | Full SQL, reviewed not executed |
 | ✅ Migration plan | Every mock has a feature flag and an owner file |
-| ⬜ Order lifecycle | State machine, ranking, Italian confirmation parsing |
+| ✅ Order lifecycle | State machine, ranking, Italian confirmation parsing |
+| ✅ Persistence & clock | In-memory repositories, append-only audit, accelerated time |
 | ⬜ Mock adapters | Interpreter, catalog matcher, three supplier agents |
 | ⬜ Orchestration | Intake → parallel canvassing → confirmation → placement |
 | ⬜ Demo frontend | WhatsApp simulator, live pipeline, Ops Console |
@@ -37,12 +38,12 @@ a rewrite. See [MIGRATION_PLAN.md](MIGRATION_PLAN.md).
 Requires [uv](https://docs.astral.sh/uv/). Python 3.12 is fetched and pinned automatically.
 
 ```bash
-cd backend
-uv sync
-uv run pytest        # domain invariants
-uv run mypy          # strict on the domain layer
-uv run ruff check src ../tests
+make install
+make check     # lint + types + tests
 ```
+
+Or individually: `make test`, `make lint`, `make types`. All targets run from the
+repo root.
 
 There is no application to start yet. This section becomes the demo script once there is.
 
@@ -52,6 +53,7 @@ There is no application to start yet. This section becomes the demo script once 
 backend/src/yquo/
   domain/     pure business logic — no I/O, no clock, no adapters
   ports/      interfaces the domain depends on
+  adapters/   every implementation of a port; the only layer touching the outside
 tests/        the invariants, not smoke tests
 ```
 
