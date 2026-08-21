@@ -37,6 +37,7 @@ if TYPE_CHECKING:
     )
     from yquo.domain.enums import ClientQuoteStatus, InvoiceStatus, OrderStatus
     from yquo.domain.values import Actor
+    from yquo.ports.supplier_agent import AgentArtifact
 
 
 class ProfessionalRepository(Protocol):
@@ -219,20 +220,67 @@ class AuditLogRepository(Protocol):
     ) -> Sequence[AuditRecord]: ...
 
 
+class ArtifactRepository(Protocol):
+    """Evidence of what an agent did, keyed by its reference.
+
+    A call transcript, an email thread, a checkout snapshot. Stored separately
+    from quotes because a supplier that declined or never answered still
+    produces one, and the canvassing view has to show it.
+
+    Append-only in practice, though not enforced the way the audit log is: an
+    artifact is a record of an external interaction, not of our own decision.
+    """
+
+    async def add(self, artifact: AgentArtifact) -> AgentArtifact: ...
+
+    async def get(self, reference: str) -> AgentArtifact | None: ...
+
+    async def list_by_order(self, order_id: UUID) -> Sequence[AgentArtifact]: ...
+
+    async def link(self, reference: str, order_id: UUID) -> None:
+        """Associate an artifact with the order it was produced for."""
+        ...
+
+
 class Repositories(Protocol):
     """The bundle handed to orchestration. Composition builds it; nothing else.
 
-    Attributes are the ports above, never concrete classes — swapping the whole
-    persistence layer is one line in composition.py.
+    Members are read-only properties rather than attributes, deliberately. A
+    Protocol with mutable attributes is invariant, which would force every
+    implementation to annotate each field as the port type rather than its own
+    concrete class. Read-only makes the Protocol covariant, so an adapter can
+    expose its real types and still satisfy this.
     """
 
-    professionals: ProfessionalRepository
-    suppliers: SupplierRepository
-    products: ProductRepository
-    orders: OrderRepository
-    quotes: QuoteRepository
-    placements: PlacementRepository
-    conversations: ConversationRepository
-    client_quotes: ClientQuoteRepository
-    invoices: InvoiceRepository
-    audit: AuditLogRepository
+    @property
+    def professionals(self) -> ProfessionalRepository: ...
+
+    @property
+    def suppliers(self) -> SupplierRepository: ...
+
+    @property
+    def products(self) -> ProductRepository: ...
+
+    @property
+    def orders(self) -> OrderRepository: ...
+
+    @property
+    def quotes(self) -> QuoteRepository: ...
+
+    @property
+    def placements(self) -> PlacementRepository: ...
+
+    @property
+    def conversations(self) -> ConversationRepository: ...
+
+    @property
+    def client_quotes(self) -> ClientQuoteRepository: ...
+
+    @property
+    def invoices(self) -> InvoiceRepository: ...
+
+    @property
+    def artifacts(self) -> ArtifactRepository: ...
+
+    @property
+    def audit(self) -> AuditLogRepository: ...

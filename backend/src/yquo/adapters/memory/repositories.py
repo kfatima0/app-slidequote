@@ -46,6 +46,7 @@ if TYPE_CHECKING:
 
     from yquo.domain.enums import ClientQuoteStatus, InvoiceStatus, OrderStatus
     from yquo.domain.values import Actor
+    from yquo.ports.supplier_agent import AgentArtifact
 
 
 class _Store[T]:
@@ -399,6 +400,37 @@ class InMemoryAuditLogRepository:
         raise AuditLogImmutableError(f"audit_log is append-only; cannot delete {record_id}")
 
 
+class InMemoryArtifactStore:
+    """Agent evidence, keyed by reference, with an order index for the UI."""
+
+    def __init__(self) -> None:
+        self._by_reference: dict[str, AgentArtifact] = {}
+        self._by_order: dict[UUID, list[str]] = {}
+        self._lock = asyncio.Lock()
+
+    async def add(self, artifact: AgentArtifact) -> AgentArtifact:
+        async with self._lock:
+            self._by_reference[artifact.reference] = artifact
+            return artifact
+
+    async def get(self, reference: str) -> AgentArtifact | None:
+        async with self._lock:
+            return self._by_reference.get(reference)
+
+    async def list_by_order(self, order_id: UUID) -> Sequence[AgentArtifact]:
+        async with self._lock:
+            references = list(self._by_order.get(order_id, ()))
+            return [
+                self._by_reference[r] for r in references if r in self._by_reference
+            ]
+
+    async def link(self, reference: str, order_id: UUID) -> None:
+        async with self._lock:
+            references = self._by_order.setdefault(order_id, [])
+            if reference not in references:
+                references.append(reference)
+
+
 class InMemoryRepositories:
     """The bundle handed to orchestration. Satisfies `ports.repositories.Repositories`."""
 
@@ -412,4 +444,5 @@ class InMemoryRepositories:
         self.conversations = InMemoryConversationRepository()
         self.client_quotes = InMemoryClientQuoteRepository()
         self.invoices = InMemoryInvoiceRepository()
+        self.artifacts = InMemoryArtifactStore()
         self.audit = InMemoryAuditLogRepository()
