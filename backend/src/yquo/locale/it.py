@@ -27,7 +27,13 @@ def ack_received() -> str:
 
 
 def ask_quantity(material: str) -> str:
-    return f"Quanti {material} le servono?"
+    """Phrased to dodge Italian gender and number agreement.
+
+    "Quanti cavo" is wrong and "Quanto cavo" is right, but the material name
+    comes from free text and we cannot reliably infer its gender. Asking for the
+    quantity directly is both correct and how a counter clerk would actually put it.
+    """
+    return f"Mi dice la quantità per {material}?"
 
 
 def ask_material() -> str:
