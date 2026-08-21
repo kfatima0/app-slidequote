@@ -1,0 +1,418 @@
+# DEMO DATA — the shared item catalog.
+#
+# Every price here is a plausible Italian trade price, NOT a quoted one. They are
+# placeholders until real supplier price lists arrive; see MIGRATION_PLAN.md §1.
+# The seed loader expands each item across the suppliers whose categories match,
+# applying that supplier's deterministic price bias, so several suppliers can
+# quote the same material at different prices — which is the whole point of the
+# canvassing view.
+#
+# `keywords` is what the mock catalog matcher searches. It holds the words a
+# tradesperson actually types, including the abbreviations ("mtm" for
+# magnetotermico, "corrugato" for tubo corrugato).
+
+- sku: CAV-FS17-1X1.5
+  name: Cavo unipolare FS17 450/750V 1x1,5 mmq
+  category: cavi
+  unit: m
+  price: 0.42
+  keywords: [cavo, fs17, unipolare, "1.5", 1x1.5, blu, marrone]
+
+- sku: CAV-FS17-1X2.5
+  name: Cavo unipolare FS17 450/750V 1x2,5 mmq
+  category: cavi
+  unit: m
+  price: 0.68
+  keywords: [cavo, fs17, unipolare, "2.5", 1x2.5]
+
+- sku: CAV-FS17-1X4
+  name: Cavo unipolare FS17 450/750V 1x4 mmq
+  category: cavi
+  unit: m
+  price: 1.05
+  keywords: [cavo, fs17, unipolare, "4", 1x4]
+
+- sku: CAV-FS17-1X6
+  name: Cavo unipolare FS17 450/750V 1x6 mmq
+  category: cavi
+  unit: m
+  price: 1.58
+  keywords: [cavo, fs17, unipolare, "6", 1x6]
+
+- sku: CAV-FROR-3G1.5
+  name: Cavo FROR 300/500V 3G1,5 mmq
+  category: cavi
+  unit: m
+  price: 1.24
+  keywords: [cavo, fror, tripolare, 3g1.5, "3x1.5"]
+
+- sku: CAV-FROR-3G2.5
+  name: Cavo FROR 300/500V 3G2,5 mmq
+  category: cavi
+  unit: m
+  price: 1.87
+  keywords: [cavo, fror, tripolare, 3g2.5, "3x2.5"]
+
+- sku: CAV-H07RNF-3G2.5
+  name: Cavo gommato H07RN-F 3G2,5 mmq
+  category: cavi
+  unit: m
+  price: 2.65
+  keywords: [cavo, gommato, h07rn, cantiere, 3g2.5]
+
+- sku: CAV-FG16-4G6
+  name: Cavo FG16OR16 0,6/1kV 4G6 mmq
+  category: cavi
+  unit: m
+  price: 6.40
+  keywords: [cavo, fg16, interrato, potenza, 4g6]
+
+- sku: CAV-UTP-CAT6
+  name: Cavo rete UTP Cat.6 LSZH matassa 100 m
+  category: cavi
+  unit: rotolo
+  price: 78.00
+  keywords: [cavo, rete, utp, cat6, lan, dati]
+
+- sku: MTM-1PN-10A
+  name: Interruttore magnetotermico 1P+N 10A 4,5kA curva C
+  category: protezioni
+  unit: pz
+  price: 12.40
+  keywords: [magnetotermico, mtm, interruttore, 10a, salvavita]
+
+- sku: MTM-1PN-16A
+  name: Interruttore magnetotermico 1P+N 16A 4,5kA curva C
+  category: protezioni
+  unit: pz
+  price: 12.90
+  keywords: [magnetotermico, mtm, interruttore, 16a, salvavita]
+
+- sku: MTM-1PN-20A
+  name: Interruttore magnetotermico 1P+N 20A 4,5kA curva C
+  category: protezioni
+  unit: pz
+  price: 14.10
+  keywords: [magnetotermico, mtm, interruttore, 20a]
+
+- sku: MTM-2P-25A
+  name: Interruttore magnetotermico 2P 25A 6kA curva C
+  category: protezioni
+  unit: pz
+  price: 24.80
+  keywords: [magnetotermico, mtm, bipolare, 25a]
+
+- sku: DIF-2P-25A-30
+  name: Interruttore differenziale puro 2P 25A 30mA tipo AC
+  category: protezioni
+  unit: pz
+  price: 46.50
+  keywords: [differenziale, salvavita, 30ma, 25a, puro]
+
+- sku: DIF-4P-40A-30
+  name: Interruttore differenziale puro 4P 40A 30mA tipo A
+  category: protezioni
+  unit: pz
+  price: 98.00
+  keywords: [differenziale, salvavita, 30ma, 40a, tetrapolare, tipo a]
+
+- sku: MTD-1PN-16A-30
+  name: Magnetotermico differenziale 1P+N 16A 30mA tipo A
+  category: protezioni
+  unit: pz
+  price: 62.00
+  keywords: [magnetotermico, differenziale, mtd, salvavita, 16a, 30ma]
+
+- sku: SPD-T2-4P
+  name: Scaricatore di sovratensione SPD Tipo 2 4P
+  category: protezioni
+  unit: pz
+  price: 138.00
+  keywords: [scaricatore, spd, sovratensione, fulmini]
+
+- sku: CTR-12M-INC
+  name: Centralino da incasso 12 moduli DIN con portello
+  category: quadri
+  unit: pz
+  price: 34.50
+  keywords: [centralino, quadro, 12 moduli, incasso]
+
+- sku: CTR-24M-INC
+  name: Centralino da incasso 24 moduli DIN con portello
+  category: quadri
+  unit: pz
+  price: 58.00
+  keywords: [centralino, quadro, 24 moduli, incasso]
+
+- sku: CTR-36M-PAR
+  name: Quadro da parete 36 moduli IP40
+  category: quadri
+  unit: pz
+  price: 92.00
+  keywords: [quadro, centralino, 36 moduli, parete]
+
+- sku: SCA-DER-100
+  name: Scatola di derivazione da parete 100x100x50 IP55
+  category: scatole
+  unit: pz
+  price: 3.10
+  keywords: [scatola, derivazione, ip55, 100x100, stagna]
+
+- sku: SCA-DER-150
+  name: Scatola di derivazione da parete 150x110x70 IP55
+  category: scatole
+  unit: pz
+  price: 5.90
+  keywords: [scatola, derivazione, ip55, 150x110, stagna]
+
+- sku: SCA-INC-503
+  name: Scatola da incasso 3 moduli 503E
+  category: scatole
+  unit: pz
+  price: 1.15
+  keywords: [scatola, incasso, 503, tre moduli]
+
+- sku: SCA-INC-506
+  name: Scatola da incasso 6 moduli 506E
+  category: scatole
+  unit: pz
+  price: 2.35
+  keywords: [scatola, incasso, 506, sei moduli]
+
+- sku: TUB-CORR-20
+  name: Tubo corrugato pesante Ø20 mm matassa 100 m
+  category: tubazioni
+  unit: rotolo
+  price: 22.50
+  keywords: [tubo, corrugato, "20", diametro 20, guaina]
+
+- sku: TUB-CORR-25
+  name: Tubo corrugato pesante Ø25 mm matassa 100 m
+  category: tubazioni
+  unit: rotolo
+  price: 31.00
+  keywords: [tubo, corrugato, "25", diametro 25, guaina]
+
+- sku: TUB-CORR-32
+  name: Tubo corrugato pesante Ø32 mm matassa 50 m
+  category: tubazioni
+  unit: rotolo
+  price: 27.40
+  keywords: [tubo, corrugato, "32", diametro 32]
+
+- sku: TUB-RIG-20
+  name: Tubo rigido PVC Ø20 mm barra 3 m
+  category: tubazioni
+  unit: pz
+  price: 2.20
+  keywords: [tubo, rigido, pvc, "20", barra]
+
+- sku: CAN-PVC-20X10
+  name: Canalina PVC 20x10 mm barra 2 m
+  category: tubazioni
+  unit: pz
+  price: 1.65
+  keywords: [canalina, pvc, 20x10, minicanale]
+
+- sku: FRU-PRESA-BIP
+  name: Presa bipasso 10/16A 2P+T colore bianco
+  category: frutti
+  unit: pz
+  price: 4.20
+  keywords: [presa, bipasso, schuko, 16a, frutto]
+
+- sku: FRU-PRESA-SCH
+  name: Presa Schuko 16A 2P+T colore bianco
+  category: frutti
+  unit: pz
+  price: 5.80
+  keywords: [presa, schuko, tedesca, 16a]
+
+- sku: FRU-INT-UNI
+  name: Interruttore unipolare 10A colore bianco
+  category: frutti
+  unit: pz
+  price: 3.40
+  keywords: [interruttore, unipolare, punto luce, frutto]
+
+- sku: FRU-DEV
+  name: Deviatore 10A colore bianco
+  category: frutti
+  unit: pz
+  price: 3.80
+  keywords: [deviatore, interruttore, frutto]
+
+- sku: FRU-PLACCA-3M
+  name: Placca 3 moduli in tecnopolimero colore bianco
+  category: frutti
+  unit: pz
+  price: 3.95
+  keywords: [placca, 3 moduli, cover, frutto]
+
+- sku: FRU-PRESA-USB
+  name: Presa caricatore USB-A + USB-C 2 moduli
+  category: frutti
+  unit: pz
+  price: 24.90
+  keywords: [presa, usb, caricatore, usb-c]
+
+- sku: ILL-FAR-7W
+  name: Faretto LED da incasso 7W 4000K IP20 foro 75 mm
+  category: illuminazione
+  unit: pz
+  price: 8.90
+  keywords: [faretto, led, incasso, 7w, spot]
+
+- sku: ILL-PLA-36W
+  name: Plafoniera LED stagna 36W 4000K IP65 120 cm
+  category: illuminazione
+  unit: pz
+  price: 26.50
+  keywords: [plafoniera, led, stagna, ip65, garage, 120]
+
+- sku: ILL-STR-24V
+  name: Striscia LED 24V 14,4W/m 4000K IP20 bobina 5 m
+  category: illuminazione
+  unit: rotolo
+  price: 34.00
+  keywords: [striscia, led, strip, 24v, bobina]
+
+- sku: ILL-ALI-100W
+  name: Alimentatore LED 24V 100W IP67
+  category: illuminazione
+  unit: pz
+  price: 42.00
+  keywords: [alimentatore, driver, led, 24v, 100w]
+
+- sku: ILL-PROI-50W
+  name: Proiettore LED 50W 4000K IP65 con staffa
+  category: illuminazione
+  unit: pz
+  price: 29.90
+  keywords: [proiettore, faro, led, 50w, esterno]
+
+- sku: ACC-WAGO-221-3
+  name: Morsetto Wago 221 a leva 3 vie (conf. 50 pz)
+  category: accessori
+  unit: cf
+  price: 27.50
+  keywords: [morsetto, wago, "221", leva, connettore]
+
+- sku: ACC-WAGO-221-5
+  name: Morsetto Wago 221 a leva 5 vie (conf. 40 pz)
+  category: accessori
+  unit: cf
+  price: 34.00
+  keywords: [morsetto, wago, "221", leva, 5 vie]
+
+- sku: ACC-GUAINA-TR
+  name: Guaina termorestringente assortita (conf. 100 pz)
+  category: accessori
+  unit: cf
+  price: 12.80
+  keywords: [guaina, termorestringente, termoretraibile]
+
+- sku: ACC-CAPI-6
+  name: Capicorda preisolati 6 mmq (conf. 100 pz)
+  category: accessori
+  unit: cf
+  price: 9.40
+  keywords: [capicorda, puntalini, terminali]
+
+- sku: IDR-MULTI-16
+  name: Tubo multistrato Ø16x2 mm rotolo 100 m
+  category: idraulica
+  unit: rotolo
+  price: 132.00
+  keywords: [multistrato, tubo, "16", 16x2, pex]
+
+- sku: IDR-MULTI-20
+  name: Tubo multistrato Ø20x2 mm rotolo 100 m
+  category: idraulica
+  unit: rotolo
+  price: 178.00
+  keywords: [multistrato, tubo, "20", 20x2, pex]
+
+- sku: IDR-RACC-16
+  name: Raccordo a pressare multistrato 16x1/2" M
+  category: idraulica
+  unit: pz
+  price: 4.60
+  keywords: [raccordo, pressare, multistrato, "16"]
+
+- sku: IDR-VALV-12
+  name: Valvola a sfera 1/2" MF passaggio totale
+  category: idraulica
+  unit: pz
+  price: 6.20
+  keywords: [valvola, sfera, rubinetto, mezzo pollice]
+
+- sku: IDR-VALV-34
+  name: Valvola a sfera 3/4" MF passaggio totale
+  category: idraulica
+  unit: pz
+  price: 8.90
+  keywords: [valvola, sfera, rubinetto, tre quarti]
+
+- sku: IDR-COLL-4
+  name: Collettore componibile 1" 4 vie con valvole
+  category: idraulica
+  unit: pz
+  price: 58.00
+  keywords: [collettore, 4 vie, distributore]
+
+- sku: IDR-FLEX-INOX
+  name: Flessibile inox 1/2" F-F 50 cm
+  category: idraulica
+  unit: pz
+  price: 4.10
+  keywords: [flessibile, inox, tubo flessibile]
+
+- sku: IDR-SIF-LAV
+  name: Sifone a bottiglia per lavabo 1"1/4 con piletta
+  category: idraulica
+  unit: pz
+  price: 11.50
+  keywords: [sifone, lavabo, scarico, piletta]
+
+- sku: TER-VALV-TERM
+  name: Valvola termostatica 1/2" con testina
+  category: termoidraulica
+  unit: pz
+  price: 32.00
+  keywords: [valvola, termostatica, radiatore, testina]
+
+- sku: TER-CRONO-WIFI
+  name: Cronotermostato WiFi da parete bianco
+  category: termoidraulica
+  unit: pz
+  price: 96.00
+  keywords: [cronotermostato, termostato, wifi, smart]
+
+- sku: TER-VASO-8L
+  name: Vaso di espansione 8 litri per riscaldamento
+  category: termoidraulica
+  unit: pz
+  price: 28.50
+  keywords: [vaso, espansione, "8 litri", autoclave]
+
+- sku: TER-CIRC-6M
+  name: Circolatore elettronico 6 m prevalenza 130 mm
+  category: termoidraulica
+  unit: pz
+  price: 152.00
+  keywords: [circolatore, pompa, riscaldamento]
+
+- sku: TER-BOIL-80
+  name: Scaldacqua elettrico 80 litri verticale
+  category: termoidraulica
+  unit: pz
+  price: 218.00
+  keywords: [scaldabagno, boiler, 80 litri, scaldacqua]
+
+- sku: TER-RAD-600
+  name: Radiatore in alluminio 600 mm (elemento singolo)
+  category: termoidraulica
+  unit: pz
+  price: 14.80
+  keywords: [radiatore, termosifone, alluminio, elemento]

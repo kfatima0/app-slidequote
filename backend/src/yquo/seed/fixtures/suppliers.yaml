@@ -1,0 +1,131 @@
+# DEMO DATA — invented suppliers.
+#
+# Names, addresses and contact details are fictional. They are shaped like real
+# Trentino trade suppliers so the demo reads as plausible to someone from the
+# area, but no real business is depicted. Replace with real names and price
+# lists once Lorenzo supplies them (MIGRATION_PLAN.md §1).
+#
+# `behaviour` is MOCK-PHASE ONLY and has no column in the target schema.
+#   strategy:  normal | slow | decline | silent | callback
+#   price_bias: multiplier on the shared catalog price — how keen this supplier is
+#   placement_failure: none | no_ack_first_attempt | never_acks
+#
+# Between them these eight cover all three channels and every behaviour the
+# canvassing view needs to show.
+
+- name: Elettroforniture Rossi S.r.l.
+  channel: ecommerce
+  categories: [cavi, protezioni, quadri, scatole, tubazioni, frutti, illuminazione, accessori]
+  reliability_score: 0.88
+  contacts:
+    portal_url: https://shop.elettroforniture-rossi.example/it
+    account_ref: YQ-3391
+    email: ordini@elettroforniture-rossi.example
+  behaviour:
+    strategy: normal
+    response_delay_s: [8, 25]
+    price_bias: 1.00
+    placement_failure: none
+    seed: 1101
+
+- name: Bertoldi Materiale Elettrico
+  channel: voice
+  categories: [cavi, protezioni, quadri, scatole, frutti, illuminazione]
+  reliability_score: 0.72
+  contacts:
+    phone_e164: "+390461887420"
+    contact_name: Sig. Bertoldi
+  behaviour:
+    strategy: normal
+    response_delay_s: [90, 190]
+    price_bias: 0.94
+    placement_failure: none
+    seed: 1102
+
+- name: Cavi & Componenti Adige
+  channel: ecommerce
+  categories: [cavi, accessori, tubazioni]
+  reliability_score: 0.81
+  contacts:
+    portal_url: https://www.cavicomponenti-adige.example
+    account_ref: CCA-7742
+  behaviour:
+    strategy: normal
+    response_delay_s: [5, 18]
+    price_bias: 0.91
+    placement_failure: none
+    seed: 1103
+
+- name: Idrotermica Alpina S.n.c.
+  channel: email
+  categories: [idraulica, termoidraulica, tubazioni]
+  reliability_score: 0.64
+  contacts:
+    email: preventivi@idrotermica-alpina.example
+    contact_name: Ufficio preventivi
+  behaviour:
+    strategy: slow
+    response_delay_s: [900, 2400]
+    price_bias: 0.97
+    placement_failure: none
+    seed: 1104
+
+- name: Zanetti Forniture Industriali
+  channel: voice
+  categories: [protezioni, quadri, accessori, cavi]
+  reliability_score: 0.55
+  contacts:
+    phone_e164: "+390464412088"
+    contact_name: Centralino
+  behaviour:
+    # Never picks up. Drives the escalation scenario.
+    strategy: silent
+    response_delay_s: [300, 300]
+    price_bias: 1.00
+    placement_failure: none
+    seed: 1105
+
+- name: EdilPoint Valsugana
+  channel: ecommerce
+  categories: [tubazioni, scatole, accessori, idraulica]
+  reliability_score: 0.69
+  contacts:
+    portal_url: https://edilpoint-valsugana.example/store
+    account_ref: EP-5518
+  behaviour:
+    # Out of stock on trade quantities. A fast, useful no.
+    strategy: decline
+    response_delay_s: [10, 20]
+    price_bias: 1.06
+    placement_failure: none
+    seed: 1106
+
+- name: Termoidraulica Dolomiti
+  channel: email
+  categories: [termoidraulica, idraulica]
+  reliability_score: 0.77
+  contacts:
+    email: info@termoidraulica-dolomiti.example
+    contact_name: Sig.ra Franceschini
+  behaviour:
+    strategy: normal
+    response_delay_s: [420, 1100]
+    price_bias: 1.02
+    placement_failure: none
+    seed: 1107
+
+- name: Peterlana Ferramenta Industriale
+  channel: voice
+  categories: [accessori, tubazioni, frutti, illuminazione]
+  reliability_score: 0.61
+  contacts:
+    phone_e164: "+390461234901"
+    contact_name: Banco vendita
+  behaviour:
+    # Quotes fine, then goes quiet on the first placement attempt. Proves the
+    # idempotent retry in front of an audience.
+    strategy: normal
+    response_delay_s: [120, 240]
+    price_bias: 1.09
+    placement_failure: no_ack_first_attempt
+    seed: 1108
