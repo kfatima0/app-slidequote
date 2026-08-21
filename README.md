@@ -1,13 +1,13 @@
 # YQuo
 
-Italian tradespeople — electricians, plumbers, *caldaisti* , lose hours every week
+Italian tradespeople — electricians, plumbers, *caldaisti* — lose hours every week
 phoning suppliers for material prices, waiting on callbacks, and re-keying the same
 order into different portals.
 
 YQuo removes that work. **The entire product surface is a phone number.** A professional
 sends a WhatsApp message describing what they need; YQuo interprets it, canvasses several
 suppliers *in parallel* — each over whatever channel that supplier actually uses, web shop,
-phone or email ranks the quotes that come back, sends the best one for confirmation, and
+phone or email — ranks the quotes that come back, sends the best one for confirmation, and
 places the order.
 
 Suppliers do not adapt to us. We adapt to them. If a supplier only takes phone orders, an
