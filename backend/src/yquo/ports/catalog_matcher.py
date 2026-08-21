@@ -10,16 +10,14 @@ changes match *quality* without changing any decision logic.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import Protocol
+from uuid import UUID
 
 from pydantic import Field
 
+# Runtime imports: these annotate Pydantic model fields.
+from yquo.domain.entities import Product
 from yquo.domain.values import Confidence, ValueObject
-
-if TYPE_CHECKING:
-    from uuid import UUID
-
-    from yquo.domain.entities import Product
 
 
 class ProductMatch(ValueObject):

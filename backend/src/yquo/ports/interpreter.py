@@ -10,16 +10,14 @@ exactly as a typed message does; there is no second extraction path.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import Protocol
 
 from pydantic import Field
 
-from yquo.domain.entities import StructuredRequest
+# Runtime imports: these annotate Pydantic model fields.
+from yquo.domain.entities import Professional, StructuredRequest
+from yquo.domain.enums import ProfessionalChannel
 from yquo.domain.values import Confidence, ValueObject
-
-if TYPE_CHECKING:
-    from yquo.domain.entities import Professional
-    from yquo.domain.enums import ProfessionalChannel
 
 
 class InterpretationRequest(ValueObject):

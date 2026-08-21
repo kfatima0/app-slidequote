@@ -16,20 +16,17 @@ is running at demo speed or real speed.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Protocol
+from datetime import datetime
+from typing import Literal, Protocol
+from uuid import UUID
 
 from pydantic import Field
 
-from yquo.domain.entities import NormalizedQuote
-from yquo.domain.values import Quantity, ValueObject
-
-if TYPE_CHECKING:
-    from datetime import datetime
-    from uuid import UUID
-
-    from yquo.domain.entities import Supplier
-    from yquo.domain.enums import Channel, Unit, Urgency
-    from yquo.domain.values import Address
+# Imported at runtime, not under TYPE_CHECKING: these annotate Pydantic model
+# fields, and Pydantic resolves them when the model is built.
+from yquo.domain.entities import NormalizedQuote, Supplier
+from yquo.domain.enums import Channel, Unit, Urgency
+from yquo.domain.values import Address, Quantity, ValueObject
 
 
 class RequestedItem(ValueObject):

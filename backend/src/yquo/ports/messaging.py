@@ -13,17 +13,15 @@ modelled now rather than bolted on later, because two of them change behaviour:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from datetime import datetime
+from typing import Protocol
+from uuid import UUID
 
 from pydantic import Field
 
+# Runtime imports: these annotate Pydantic model fields.
+from yquo.domain.enums import ProfessionalChannel
 from yquo.domain.values import ValueObject
-
-if TYPE_CHECKING:
-    from datetime import datetime
-    from uuid import UUID
-
-    from yquo.domain.enums import ProfessionalChannel
 
 
 class OutboundMessage(ValueObject):
