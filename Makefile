@@ -2,7 +2,7 @@
 # backend/, so `--project backend` points uv at the environment while pytest
 # resolves its rootdir from ./pytest.ini.
 
-.PHONY: install test lint types check
+.PHONY: install test lint types check api
 
 install:
 	uv sync --project backend
@@ -18,3 +18,7 @@ types:
 
 # What CI runs, and what to run before a commit.
 check: lint types test
+
+# The demo backend. http://127.0.0.1:8000/docs lists every route.
+api:
+	uv run --project backend uvicorn yquo.api.main:app --reload --port 8000
