@@ -190,6 +190,7 @@ export function Console() {
   return (
     <>
       <div className="topbar">
+        <div className="topbar-inner">
         <div className="brand">
           YQuo <span>demo harness</span>
         </div>
@@ -214,6 +215,7 @@ export function Console() {
           <button type="button" onClick={() => void reset()}>
             Azzera demo
           </button>
+        </div>
         </div>
       </div>
 

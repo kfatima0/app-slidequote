@@ -35,13 +35,26 @@ body {
   background: var(--page);
 }
 
+/* The bar shares the layout's max width so its edges line up with the cards
+   below on a wide screen, and wraps rather than pushing the reset button off the
+   side when the professional's name is long. */
 .topbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
+  gap: 10px 14px;
   padding: 12px 20px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
+}
+.topbar-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
 }
 
 .brand { font-weight: 650; letter-spacing: -0.01em; font-size: 17px; }
@@ -82,7 +95,7 @@ body {
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 130px);
+  height: min(calc(100vh - 130px), 760px);
   min-height: 520px;
 }
 
@@ -305,6 +318,8 @@ body {
   font: inherit; font-size: 13px; padding: 5px 10px;
   border: 1px solid var(--line); border-radius: 7px; background: #fff; cursor: pointer;
 }
+/* A long business name must not be able to shove the reset button off-screen. */
+.controls select { max-width: 260px; }
 .controls button:hover { border-color: var(--accent); color: var(--accent); }
 
 .kv { display: flex; gap: 6px; font-size: 12.5px; color: var(--ink-soft); }
