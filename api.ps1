@@ -21,6 +21,24 @@ function Find-Uv {
     throw "uv not found. Install it from https://docs.astral.sh/uv/ and re-run."
 }
 
+# Demo pacing. One acceleration factor cannot serve both halves of the flow:
+# canvassing wants to be fast enough to watch, and the confirmation window wants
+# to be slow enough to talk over. At 60x the real 30-minute window becomes 30
+# wall-clock seconds, which expires the order while the presenter is still
+# explaining the screen.
+#
+# So the window is widened for the demo only. Production values stay in
+# config/settings.py: 1800s to confirm, reminder at 900s.
+#
+#   7200s simulated / 60 = 2 minutes to reply
+#   3600s simulated / 60 = 1 minute before the reminder
+#
+# To demo the expiry deliberately (scenario 5), drop these back to 1800 and 900
+# and simply do not answer.
+$env:YQUO_POLICY__CONFIRMATION_WINDOW_S = "7200"
+$env:YQUO_POLICY__REMINDER_AFTER_S = "3600"
+
 $uv = Find-Uv
 Write-Host "YQuo demo backend -> http://127.0.0.1:8000/docs" -ForegroundColor Cyan
+Write-Host "  time x60 | 2 minutes to confirm a quote" -ForegroundColor DarkGray
 & $uv run --project "$repo\backend" uvicorn yquo.api.main:app --reload --port 8000
