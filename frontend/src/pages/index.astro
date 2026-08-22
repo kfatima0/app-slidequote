@@ -2,8 +2,7 @@
 // Astro ships this page as static HTML and hydrates exactly one island. The
 // chrome around the console never becomes JavaScript, which is why the page is
 // up before a hotel wifi has finished thinking about it.
-import { Boundary } from "../components/Boundary";
-import { Console } from "../components/Console";
+import { App } from "../components/App";
 import "../styles/app.css";
 ---
 
@@ -29,8 +28,6 @@ import "../styles/app.css";
     />
   </head>
   <body>
-    <Boundary client:load>
-      <Console />
-    </Boundary>
+    <App client:load />
   </body>
 </html>
