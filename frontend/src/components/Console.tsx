@@ -81,9 +81,10 @@ export function Console() {
 
   /** One subscription for the life of the page. */
   useEffect(() => {
-    const close = api.stream((event) => {
-      setConnected(true);
-      void handle(event);
+    const close = api.stream({
+      onOpen: () => setConnected(true),
+      onError: () => setConnected(false),
+      onEvent: (event) => void handle(event),
     });
     return close;
 

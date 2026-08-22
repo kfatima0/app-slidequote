@@ -7,6 +7,16 @@ import "../styles/app.css";
 ---
 
 <!doctype html>
+<!--
+  lang="it" is correct and stays: the page really is Italian.
+
+  Browser translation is deliberately NOT blocked. It is useful while building,
+  since it lets a non-Italian reader check the layout and the flow. The cost is
+  that a browser set to English will offer to translate during a demo, and
+  accepting turns "Bortolotti Impianti Elettrici" into "Bortolotti Electrical
+  Systems" in front of the one audience that must see the real thing. Turning
+  translation off before demoing is a line in the demo script, not a code change.
+-->
 <html lang="it">
   <head>
     <meta charset="utf-8" />

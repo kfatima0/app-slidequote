@@ -170,9 +170,20 @@ export const api = {
    *
    * Display only: if this connection drops, orders carry on regardless. That is
    * why there is no retry logic worth speaking of, and why nothing waits on it.
+   *
+   * `onOpen` and `onError` come from EventSource rather than from the first
+   * event to arrive. A quiet stream is still a connected one, and reporting it
+   * as down until something happens is a status light that lies.
    */
-  stream(onEvent: (event: StreamEvent) => void): () => void {
+  stream(handlers: {
+    onEvent: (event: StreamEvent) => void;
+    onOpen?: () => void;
+    onError?: () => void;
+  }): () => void {
+    const { onEvent, onOpen, onError } = handlers;
     const source = new EventSource(`${BASE}/api/stream`);
+    source.onopen = () => onOpen?.();
+    source.onerror = () => onError?.();
     const kinds = [
       "message_received",
       "message_sent",
