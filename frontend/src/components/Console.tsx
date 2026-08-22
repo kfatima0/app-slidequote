@@ -29,6 +29,10 @@ import { Chat } from "./Chat";
 import { Evidence } from "./Evidence";
 import { Pipeline } from "./Pipeline";
 
+/** One wording, used wherever the backend turns out not to be there. */
+const BACKEND_DOWN =
+  "Backend non raggiungibile. Avvia .\\api.ps1 in un terminale, poi ricarica la pagina.";
+
 export function Console() {
   const [demo, setDemo] = useState<DemoState | null>(null);
   const [professional, setProfessional] = useState<Professional | null>(null);
@@ -80,9 +84,7 @@ export function Console() {
         if (state.professionals[0]) await refreshThread(state.professionals[0]);
         await refreshOrders();
       } catch {
-        setError(
-          "Backend non raggiungibile. Avvia .\\api.ps1 e ricarica la pagina.",
-        );
+        setError(BACKEND_DOWN);
       }
     })();
   }, [refreshThread, refreshOrders]);
@@ -193,15 +195,18 @@ export function Console() {
     setMessages([]);
     setError(null);
 
-    await api.reset();
-    const state = await api.demoState();
-    setDemo(state);
-    const who = state.professionals[0] ?? null;
-    setProfessional(who);
-    setOrder(null);
-    setDispatches([]);
-    setOrders([]);
-    setMessages(who ? await api.conversation(who.id) : []);
+    try {
+      await api.reset();
+      const state = await api.demoState();
+      setDemo(state);
+      const who = state.professionals[0] ?? null;
+      setProfessional(who);
+      setMessages(who ? await api.conversation(who.id) : []);
+    } catch {
+      // Without this the screen stays wiped with no explanation, which is
+      // exactly what it looked like the first time the backend was down.
+      setError(BACKEND_DOWN);
+    }
   }
 
   return (
@@ -211,7 +216,14 @@ export function Console() {
         <div className="brand">
           YQuo <span>demo harness</span>
         </div>
-        <span className={`pill ${connected ? "live" : "dead"}`}>
+        <span
+          className={`pill ${connected ? "live" : "dead"}`}
+          title={
+            connected
+              ? "Aggiornamenti in tempo reale dal backend"
+              : "Nessun aggiornamento in tempo reale. Il backend è avviato?"
+          }
+        >
           {connected ? "● in diretta" : "○ non collegato"}
         </span>
         {demo && <span className="pill">tempo ×{demo.time_acceleration}</span>}
