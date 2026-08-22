@@ -246,5 +246,8 @@ async def reset(request: Request) -> DemoStateOut:
     """
     old: Orchestrator = request.app.state.orchestrator
     await old.shutdown()
-    request.app.state.orchestrator = await build(Settings())
+    # Keep the bus, drop its history: the browsers watching are not being reset,
+    # but the events they would replay point at orders that no longer exist.
+    old.ctx.bus.clear_history()
+    request.app.state.orchestrator = await build(Settings(), bus=old.ctx.bus)
     return await demo_state(request.app.state.orchestrator)

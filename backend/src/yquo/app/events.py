@@ -73,6 +73,15 @@ class EventBus:
             except asyncio.QueueFull:
                 self._subscribers.discard(queue)
 
+    def clear_history(self) -> None:
+        """Forget the replay buffer without disturbing subscribers.
+
+        Called on a demo reset. The orders those events refer to no longer
+        exist, so replaying them to a browser that reconnects would have it ask
+        for records that are gone.
+        """
+        self._recent.clear()
+
     def history(self, *, order_id: UUID | None = None) -> list[Event]:
         if order_id is None:
             return list(self._recent)

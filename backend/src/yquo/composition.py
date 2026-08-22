@@ -88,9 +88,19 @@ def build_matcher(settings: Settings, repos: Repositories) -> CatalogMatcherPort
 
 
 async def build(
-    settings: Settings | None = None, *, start: datetime | None = None, seed: bool = True
+    settings: Settings | None = None,
+    *,
+    start: datetime | None = None,
+    seed: bool = True,
+    bus: EventBus | None = None,
 ) -> Orchestrator:
-    """Assemble the whole system and return the one object the API talks to."""
+    """Assemble the whole system and return the one object the API talks to.
+
+    `bus` lets a rebuild keep the existing event bus. A demo reset throws away
+    the world but not the browsers watching it: a fresh bus would leave every
+    open SSE connection subscribed to an object nothing publishes to any more,
+    so the page would look connected and never update again.
+    """
     settings = settings or Settings()
 
     clock = build_clock(settings, start=start)
@@ -106,6 +116,6 @@ async def build(
         interpreter=build_interpreter(settings),
         matcher=build_matcher(settings, repos),
         agents=build_agents(repos.products, clock),
-        bus=EventBus(),
+        bus=bus or EventBus(),
     )
     return Orchestrator(ctx)

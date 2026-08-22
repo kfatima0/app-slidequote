@@ -57,9 +57,17 @@ export function Console() {
   }, []);
 
   const openOrder = useCallback(async (id: string) => {
-    const detail = await api.order(id);
-    setOrder(detail);
-    return detail;
+    // An order can legitimately be gone: a demo reset clears the world while a
+    // browser may still hold references to what was there a moment ago. That is
+    // not an error worth showing anyone.
+    try {
+      const detail = await api.order(id);
+      setOrder(detail);
+      return detail;
+    } catch {
+      setOrder(null);
+      return null;
+    }
   }, []);
 
   /** Load the world once. */
@@ -176,6 +184,15 @@ export function Console() {
   }
 
   async function reset() {
+    // Clear the screen first. Anything still on it refers to orders that are
+    // about to stop existing, and a half-cleared screen during the rebuild is
+    // how the page ended up blank.
+    setOrder(null);
+    setDispatches([]);
+    setOrders([]);
+    setMessages([]);
+    setError(null);
+
     await api.reset();
     const state = await api.demoState();
     setDemo(state);
