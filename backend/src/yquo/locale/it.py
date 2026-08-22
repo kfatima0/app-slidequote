@@ -181,11 +181,16 @@ def urgency_standard() -> str:
 
 
 def call_opening(supplier_name: str) -> str:
-    return f"Buongiorno, chiamo per conto di un cliente. Parlo con {supplier_name}?"
+    """No "am I speaking to X?": they answered with their own name.
+
+    Asking anyway is the tell that a script is running rather than a person
+    listening, and it is the second line of every call the agent makes.
+    """
+    return "Buongiorno, chiamo per conto di un nostro cliente."
 
 
-def call_request(items_it: str) -> str:
-    return f"Avrei bisogno di un preventivo per: {items_it}."
+def call_request() -> str:
+    return "Avrei bisogno di un preventivo per questi articoli:"
 
 
 def call_confirm_back(total: Decimal, delivery_days: int | None) -> str:

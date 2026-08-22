@@ -56,7 +56,7 @@ class MockVoiceAgent(MockSupplierAgent):
     ) -> AgentArtifact:
         clerk = request.supplier.contacts.contact_name or "Banco"
         spoken_lines = "\n".join(
-            f"{clerk}: Allora, {line.product.raw_description.lower()}, "
+            f"{clerk}: Allora, {line.product.raw_description}, "
             f"{_euro(line.product.last_price)} al {line.item.unit.value}. "
             f"Per {line.item.quantity:g} fa {_euro(line.line.line_total)}."
             for line in lines
@@ -67,8 +67,8 @@ class MockVoiceAgent(MockSupplierAgent):
             f"[squilli]\n"
             f"{clerk}: {request.supplier.name}, buongiorno.\n"
             f"YQuo: {it.call_opening(request.supplier.name)}\n"
-            f"{clerk}: Sì, mi dica.\n"
-            f"YQuo: {it.call_request('alcuni articoli, glieli elenco')}\n"
+            f"{clerk}: Mi dica.\n"
+            f"YQuo: {it.call_request()}\n"
             f"{self._items_as_text(request)}\n"
             f"{clerk}: Un attimo che controllo... [attesa 14s]\n"
             f"{spoken_lines}\n"
@@ -94,7 +94,7 @@ class MockVoiceAgent(MockSupplierAgent):
             f"[squilli]\n"
             f"{clerk}: {request.supplier.name}, buongiorno.\n"
             f"YQuo: {it.call_opening(request.supplier.name)}\n"
-            f"YQuo: {it.call_request('alcuni articoli')}\n"
+            f"YQuo: {it.call_request()}\n"
             f"{self._items_as_text(request)}\n"
             f"{clerk}: {reason_it}\n"
             f"YQuo: Capisco, grazie lo stesso. Buona giornata.\n"
