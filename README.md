@@ -37,21 +37,19 @@ a rewrite. See [MIGRATION_PLAN.md](MIGRATION_PLAN.md).
 
 Requires [uv](https://docs.astral.sh/uv/). Python 3.12 is fetched and pinned automatically.
 
-```bash
-make install
-make check     # lint + types + tests
-make api       # the demo backend on http://127.0.0.1:8000/docs
-```
-
-On Windows, or anywhere `make` is missing, the same two things:
-
 ```powershell
-.\check.ps1
-.\api.ps1
+.\check.ps1     # lint + types + tests
+.\api.ps1       # the demo backend
 ```
 
-Those scripts locate `uv` themselves rather than trusting PATH, because a conda
-shell hook rebuilds PATH at startup and drops the directory uv installs into.
+The scripts locate `uv` themselves rather than trusting PATH. A program receives
+a copy of PATH when it starts and passes that copy to everything it launches, so
+an editor opened before `uv` was installed hands every terminal a PATH without it
+until the editor itself is restarted. Searching the known install locations
+avoids the problem entirely.
+
+There is no Makefile: `make` is not present on the machine this is developed on,
+and one runner is better than two that can drift apart.
 
 With the backend running, http://127.0.0.1:8000/docs lists every route and will
 send a real message end to end. The browser demo is not built yet; this section
