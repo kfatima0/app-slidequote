@@ -35,18 +35,56 @@ a rewrite. See [MIGRATION_PLAN.md](MIGRATION_PLAN.md).
 
 ## Running it
 
-Requires [uv](https://docs.astral.sh/uv/). Python 3.12 is fetched and pinned automatically.
+Needs [uv](https://docs.astral.sh/uv/) and [Node](https://nodejs.org/) 20+. Python
+3.12 is fetched and pinned by uv automatically.
 
-```powershell
-.\check.ps1     # lint + types + tests
+### First time
+
+```bash
+uv sync --project backend
+cd frontend && npm install && cd ..
 ```
 
-The demo needs both halves running, in two terminals:
+### Every time
+
+The demo is two processes, in two terminals. Order does not matter; if the page
+loads first it will say the backend is unreachable until the backend is up.
+
+**Windows**
 
 ```powershell
-.\api.ps1                       # backend  -> http://127.0.0.1:8000
-cd frontend; npm install; npm run dev   # browser -> http://127.0.0.1:4321
+.\api.ps1                                # backend  -> http://127.0.0.1:8000
+cd frontend; npm run dev                 # browser  -> http://127.0.0.1:4321
 ```
+
+**macOS and Linux**
+
+```bash
+./api.sh                                 # backend  -> http://127.0.0.1:8000
+cd frontend && npm run dev               # browser  -> http://127.0.0.1:4321
+```
+
+Both terminals stay occupied while running. Ctrl+C in each to stop.
+
+Then open http://127.0.0.1:4321 and type a request in Italian, or use one of the
+suggestion chips. http://127.0.0.1:8000/docs is the backend's own console, useful
+for debugging but not for showing anyone.
+
+### Checks
+
+```powershell
+.\check.ps1     # Windows
+```
+```bash
+./check.sh      # macOS and Linux
+```
+
+Lint, types and the full test suite. Run it before committing.
+
+### Why scripts rather than a Makefile
+
+`make` is not present on the machine this is developed on, and one runner per
+platform is better than two that can drift apart.
 
 The scripts locate `uv` themselves rather than trusting PATH. A program receives
 a copy of PATH when it starts and passes that copy to everything it launches, so
@@ -54,12 +92,17 @@ an editor opened before `uv` was installed hands every terminal a PATH without i
 until the editor itself is restarted. Searching the known install locations
 avoids the problem entirely.
 
-There is no Makefile: `make` is not present on the machine this is developed on,
-and one runner is better than two that can drift apart.
+If you would rather not use the scripts at all, they wrap exactly this:
 
-Open http://127.0.0.1:4321 and type a request in Italian, or use one of the
-suggestion chips. http://127.0.0.1:8000/docs is the backend's own console, useful
-for debugging but not for showing anyone.
+```bash
+uv run --project backend uvicorn yquo.api.main:app --reload --port 8000
+uv run --project backend ruff check backend/src tests
+uv run --project backend pytest -q
+cd backend && uv run mypy
+```
+
+Note that running the backend by hand skips the demo pacing the script sets up:
+see the comment at the top of `api.ps1` for what it widens and why.
 
 ## Layout
 

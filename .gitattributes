@@ -1,0 +1,9 @@
+# Shell scripts must keep LF endings. Git on Windows converts to CRLF by default,
+# and a shell script with CRLF fails on Linux with a "bad interpreter" error that
+# names a path which looks correct, because the carriage return is invisible.
+# These scripts exist specifically for macOS and Linux teammates, so this line is
+# the difference between them working and them being baffling.
+*.sh text eol=lf
+
+# PowerShell is happy either way; pinning it keeps diffs quiet across machines.
+*.ps1 text eol=crlf
