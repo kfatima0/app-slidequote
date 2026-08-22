@@ -40,10 +40,18 @@ Requires [uv](https://docs.astral.sh/uv/). Python 3.12 is fetched and pinned aut
 ```bash
 make install
 make check     # lint + types + tests
+make api       # the demo backend on http://127.0.0.1:8000/docs
 ```
 
-Or individually: `make test`, `make lint`, `make types`. All targets run from the
-repo root.
+On Windows, or anywhere `make` is missing, the same two things:
+
+```powershell
+.\check.ps1
+.pi.ps1
+```
+
+Those scripts locate `uv` themselves rather than trusting PATH, because a conda
+shell hook rebuilds PATH at startup and drops the directory uv installs into.
 
 There is no application to start yet. This section becomes the demo script once there is.
 
