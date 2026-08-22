@@ -30,7 +30,7 @@ a rewrite. See [MIGRATION_PLAN.md](MIGRATION_PLAN.md).
 | ✅ Persistence & clock | In-memory repositories, append-only audit, accelerated time |
 | ⬜ Mock adapters | Interpreter, catalog matcher, three supplier agents |
 | ⬜ Orchestration | Intake → parallel canvassing → confirmation → placement |
-| ⬜ Demo frontend | WhatsApp simulator, live pipeline, Ops Console |
+| ✅ Demo frontend | WhatsApp simulator, live canvassing, agent evidence |
 | ⬜ Seed scenarios | Six reproducible demo scenarios |
 
 ## Running it
@@ -39,7 +39,13 @@ Requires [uv](https://docs.astral.sh/uv/). Python 3.12 is fetched and pinned aut
 
 ```powershell
 .\check.ps1     # lint + types + tests
-.\api.ps1       # the demo backend
+```
+
+The demo needs both halves running, in two terminals:
+
+```powershell
+.\api.ps1                       # backend  -> http://127.0.0.1:8000
+cd frontend; npm install; npm run dev   # browser -> http://127.0.0.1:4321
 ```
 
 The scripts locate `uv` themselves rather than trusting PATH. A program receives
@@ -51,9 +57,9 @@ avoids the problem entirely.
 There is no Makefile: `make` is not present on the machine this is developed on,
 and one runner is better than two that can drift apart.
 
-With the backend running, http://127.0.0.1:8000/docs lists every route and will
-send a real message end to end. The browser demo is not built yet; this section
-becomes the click-by-click demo script once it is.
+Open http://127.0.0.1:4321 and type a request in Italian, or use one of the
+suggestion chips. http://127.0.0.1:8000/docs is the backend's own console, useful
+for debugging but not for showing anyone.
 
 ## Layout
 

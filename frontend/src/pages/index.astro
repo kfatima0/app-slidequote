@@ -1,0 +1,23 @@
+---
+// Astro ships this page as static HTML and hydrates exactly one island. The
+// chrome around the console never becomes JavaScript, which is why the page is
+// up before a hotel wifi has finished thinking about it.
+import { Console } from "../components/Console";
+import "../styles/app.css";
+---
+
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>YQuo — simulatore</title>
+    <meta
+      name="description"
+      content="Demo harness: WhatsApp simulato, fornitori interpellati in parallelo, preventivi classificati."
+    />
+  </head>
+  <body>
+    <Console client:load />
+  </body>
+</html>
