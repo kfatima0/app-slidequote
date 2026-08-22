@@ -12,6 +12,9 @@ htmlcov/
 
 # --- Node / frontend (Astro) ---
 node_modules/
+# npm run from the repo root by mistake leaves these here; the real ones
+# live in frontend/.
+/package-lock.json
 dist/
 .astro/
 .output/
