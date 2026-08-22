@@ -47,13 +47,15 @@ On Windows, or anywhere `make` is missing, the same two things:
 
 ```powershell
 .\check.ps1
-.pi.ps1
+.\api.ps1
 ```
 
 Those scripts locate `uv` themselves rather than trusting PATH, because a conda
 shell hook rebuilds PATH at startup and drops the directory uv installs into.
 
-There is no application to start yet. This section becomes the demo script once there is.
+With the backend running, http://127.0.0.1:8000/docs lists every route and will
+send a real message end to end. The browser demo is not built yet; this section
+becomes the click-by-click demo script once it is.
 
 ## Layout
 
