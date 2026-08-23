@@ -7,7 +7,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "smoke": "node e2e/smoke.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^4.2.0",
@@ -19,6 +20,7 @@
     "@astrojs/check": "^0.9.10",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "playwright": "^1.62.1",
     "typescript": "^5.7.0"
   }
 }

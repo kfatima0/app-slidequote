@@ -94,7 +94,19 @@ export function Console() {
     const close = api.stream({
       onOpen: () => setConnected(true),
       onError: () => setConnected(false),
-      onEvent: (event) => void handle(event),
+      // Failures in here used to vanish. An event handler is outside React's
+      // render lifecycle, so the error boundary never sees it, and a rejected
+      // promise with no catch is silent: the screen would simply stop updating
+      // mid-canvass with no indication why.
+      onEvent: (event) => {
+        handle(event).catch((problem: unknown) => {
+          console.error("failed handling a stream event", event.kind, problem);
+          setError(
+            "Aggiornamento non riuscito. Il backend è ancora attivo? " +
+              "Ricarica la pagina per riallinearti.",
+          );
+        });
+      },
     });
     return close;
 
