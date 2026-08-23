@@ -59,6 +59,17 @@ await page.getByRole("button", { name: "Senza quantità" }).click();
 await page.waitForTimeout(6000);
 if (await broke("after a request post-reset")) process.exit(1);
 
+// Every pipeline row, in whatever state it is in. Clicking one re-reads the
+// order, and an order parked at "Ricevuto" has no items and no quotes yet,
+// which is the emptiest shape the detail view ever has to render.
+const rows = page.locator(".order-row");
+for (let i = 0; i < (await rows.count()); i += 1) {
+  const state = (await rows.nth(i).locator(".status-chip").innerText()).trim();
+  await rows.nth(i).click();
+  await page.waitForTimeout(1000);
+  if (await broke(`after clicking a '${state}' row`)) process.exit(1);
+}
+
 console.log("\nsupplier rows:", await page.locator(".supplier").count());
 console.log("chat bubbles:", await page.locator(".bubble").count());
 console.log("\n--- problems ---");
