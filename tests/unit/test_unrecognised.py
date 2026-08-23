@@ -161,3 +161,63 @@ class TestDescriptionReadsCleanly:
         replies = await _outbound(orchestrator)
         assert replies
         assert not any("  " in r for r in replies)
+
+
+class TestOffTopicWhileAwaiting:
+    """A message that is not an answer, sent while a quote is on the table.
+
+    Reported as "the interface breaks": the supplier panel emptied and nothing
+    came back. It was not a crash, it was silence, which looks the same from the
+    outside and is arguably worse.
+    """
+
+    async def test_the_order_does_not_advance(self, orchestrator: Orchestrator) -> None:
+        order = await orchestrator.run_to_completion(
+            await _send(
+                orchestrator,
+                "mi servono 100 metri di cavo FROR 3x2.5 e 4 magnetotermici 16A",
+                "A-1",
+            )
+        )
+        assert order is not None
+        assert order.status is OrderStatus.AWAITING_CONFIRMATION
+
+        after = await orchestrator.handle_inbound(
+            await _send(orchestrator, "a che ora consegnano?", "A-2")
+        )
+        assert after is not None
+        assert after.status is OrderStatus.AWAITING_CONFIRMATION
+
+    async def test_it_is_answered_rather_than_dropped(
+        self, orchestrator: Orchestrator
+    ) -> None:
+        """Constraint §3.5 in miniature: nothing goes unanswered."""
+        await orchestrator.run_to_completion(
+            await _send(orchestrator, "mi servono 100 metri di cavo FROR 3x2.5", "A-1")
+        )
+        before = len(await _outbound(orchestrator))
+
+        await orchestrator.handle_inbound(
+            await _send(orchestrator, "a che ora consegnano?", "A-2")
+        )
+        replies = await _outbound(orchestrator)
+
+        assert len(replies) > before, "an off-topic message must not vanish"
+        assert "preventivo di prima" in replies[-1]
+        assert "ok" in replies[-1]
+
+    async def test_a_second_request_does_not_silently_replace_the_first(
+        self, orchestrator: Orchestrator
+    ) -> None:
+        """Sending a whole new request is the commonest form of this mistake."""
+        await orchestrator.run_to_completion(
+            await _send(orchestrator, "mi servono 100 metri di cavo FROR 3x2.5", "A-1")
+        )
+        await orchestrator.handle_inbound(
+            await _send(orchestrator, "mi servono 2 plafoniere LED 36W", "A-2")
+        )
+
+        professional = (await orchestrator.ctx.repos.professionals.list_all())[0]
+        orders = await orchestrator.ctx.repos.orders.list_by_professional(professional.id)
+        assert len(orders) == 1, "the pending quote must not be orphaned by a new request"
+        assert "preventivo di prima" in (await _outbound(orchestrator))[-1]

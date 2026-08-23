@@ -5,7 +5,8 @@ explicit confirmation, which makes this module's job as much about refusing to
 act as about acting:
 
 * silence is not consent, so the window expires rather than proceeding
-* an unrelated message is not consent, so it is ignored for this purpose
+* an unrelated message is not consent, so it does not advance the order -- but
+  it is answered, because silence reads as a broken system
 * an ambiguous reply gets one question, never a guess
 
 A decline is not the end. The next-ranked quote is offered, and only when there
@@ -143,11 +144,19 @@ async def handle_reply(ctx: AppContext, order: Order, text: str) -> Order:
         return await _decline(ctx, order)
 
     professional = await ctx.repos.professionals.get(order.professional_id)
-    if intent is ConfirmationIntent.AMBIGUOUS and professional is not None:
+    if professional is None:  # pragma: no cover - an order always has one
+        return order
+
+    if intent is ConfirmationIntent.AMBIGUOUS:
         # Ask once. Never resolve an ambiguous reply by guessing.
         await send(ctx, professional, it.confirmation_unclear(), order_id=order.id)
-    # UNRELATED falls through untouched: an on-thread question is not an answer,
-    # and the confirmation window keeps running.
+        return order
+
+    # UNRELATED. Still not consent, and the window keeps running, but it does not
+    # go unanswered: writing something and getting nothing back is how a working
+    # system looks broken. Constraint §3.5 in miniature -- nothing is silently
+    # dropped, not even a message we are choosing not to act on.
+    await send(ctx, professional, it.quote_still_pending(), order_id=order.id)
     return order
 
 

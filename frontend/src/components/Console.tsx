@@ -177,7 +177,11 @@ export function Console() {
     if (!professional) return;
     setBusy(true);
     setError(null);
-    if (channel === "whatsapp" || channel === "voice") setDispatches([]);
+    // The panel is deliberately not cleared here. A message sent while a quote
+    // is awaiting confirmation is a reply, not a new request, so no canvassing
+    // round follows and clearing would blank the suppliers with nothing to
+    // replace them. The dispatched event clears and refills it when a round
+    // really does start.
     try {
       setMessages(await api.send(professional.id, body, channel));
     } catch {

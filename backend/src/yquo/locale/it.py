@@ -117,6 +117,19 @@ def confirmation_unclear() -> str:
     return "Non ho capito se procedo. Mi conferma con un *ok*?"
 
 
+def quote_still_pending() -> str:
+    """Something off-topic arrived while a quote was on the table.
+
+    Silence here reads as a broken system: the professional wrote something and
+    nothing came back. Saying what is waiting, and how to move it either way,
+    costs one message and removes the doubt.
+    """
+    return (
+        "Ho ancora il preventivo di prima in attesa di una risposta.\n"
+        "Mi scriva *ok* per procedere, oppure *annulla* se non le serve più."
+    )
+
+
 def reminder() -> str:
     """TEMPLATE: yquo_reminder"""
     return "Le ricordo il preventivo di prima. Procedo con l'ordine?"
