@@ -9,7 +9,20 @@
  * (PROMPT.md §3.8); every judgement lives in the backend.
  */
 
-const BASE = import.meta.env.PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
+/**
+ * Where the API lives.
+ *
+ * In a production build this is empty, meaning "same origin": the backend
+ * serves this page, so `/api/...` resolves to the backend that sent it. That is
+ * what makes a deployment one URL rather than two services that have to find
+ * each other, and it removes CORS from the picture entirely.
+ *
+ * In development the page comes from Astro on 4321 while the API is on 8000, so
+ * the origin has to be named.
+ */
+const BASE =
+  import.meta.env.PUBLIC_API_BASE ??
+  (import.meta.env.DEV ? "http://127.0.0.1:8000" : "");
 
 /**
  * This browser's own demo world.

@@ -13,13 +13,16 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 
 from yquo.api import mappers
 from yquo.api.schemas import (
@@ -55,13 +58,28 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(title="YQuo demo harness", version="0.1.0", lifespan=lifespan)
 
-# The Astro dev server is a separate origin. Demo-only: there is nothing to
-# protect here, and no real credentials exist in this phase.
+# Only needed in development, where the Astro dev server is a separate origin.
+# A deployed build is served from this same app, so nothing is cross-origin and
+# this middleware never applies. Demo-only regardless: there is nothing here to
+# protect and no real credentials exist in this phase.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:4321", "http://127.0.0.1:4321"],
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+#: The built frontend, when there is one. Mounted last so every /api route above
+#: still wins; anything else falls through to the page.
+#:
+#: The default is the repo layout. A container lays things out differently, so
+#: YQUO_FRONTEND_DIST overrides it rather than the image having to reproduce a
+#: directory structure to satisfy a relative path.
+FRONTEND_DIST = Path(
+    os.environ.get(
+        "YQUO_FRONTEND_DIST",
+        str(Path(__file__).resolve().parents[3].parent / "frontend" / "dist"),
+    )
 )
 
 
@@ -272,3 +290,18 @@ async def reset(request: Request) -> DemoStateOut:
     registry: SessionRegistry = request.app.state.sessions
     fresh = await registry.reset(session_id(request))
     return await demo_state(fresh)
+
+
+def mount_frontend(app: FastAPI, dist: Path = FRONTEND_DIST) -> bool:
+    """Serve the built demo page from this app, if it has been built.
+
+    Absent in development, where Astro serves it with hot reload. Present in a
+    deployment, which is what turns two services into one URL.
+    """
+    if not (dist / "index.html").exists():
+        return False
+    app.mount("/", StaticFiles(directory=dist, html=True), name="frontend")
+    return True
+
+
+mount_frontend(app)

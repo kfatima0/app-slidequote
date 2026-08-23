@@ -23,7 +23,7 @@ const broke = async (label) => {
   return hit > 0;
 };
 
-await page.goto("http://127.0.0.1:4321/", { waitUntil: "networkidle" });
+await page.goto(process.env.YQUO_URL ?? "http://127.0.0.1:8000/", { waitUntil: "networkidle" });
 await broke("after load");
 
 await page.getByRole("button", { name: "Richiesta completa" }).click();

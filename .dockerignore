@@ -1,0 +1,20 @@
+# Keep the build context small and the image reproducible: anything that is
+# generated, machine-specific, or irrelevant to running the demo.
+.git/
+.gitattributes
+**/__pycache__/
+**/*.pyc
+**/.venv/
+**/node_modules/
+**/dist/
+**/.astro/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.pytest_cache/
+frontend/e2e/
+tests/
+docs/
+*.ps1
+*.sh
+*.md
+!backend/README.md

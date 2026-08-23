@@ -1,0 +1,22 @@
+# Render reads this so the service does not have to be described in a form.
+# See DEPLOY.md for the walkthrough and for why a single instance is deliberate.
+services:
+  - type: web
+    name: yquo-demo
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # The demo keeps every visitor's world in this process's memory, so a second
+    # instance would serve some requests from a process that does not have that
+    # visitor's order. One instance until the Supabase swap (MIGRATION_PLAN §2).
+    numInstances: 1
+    # free sleeps after 15 minutes idle and takes ~50s to wake. Fine for a link
+    # you warm up before a call; change to "starter" for one you hand out.
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      # Demo pacing, matching api.ps1 and api.sh: two minutes on the clock to
+      # confirm a quote, so a presenter can talk over it.
+      - key: YQUO_POLICY__CONFIRMATION_WINDOW_S
+        value: "7200"
+      - key: YQUO_POLICY__REMINDER_AFTER_S
+        value: "3600"

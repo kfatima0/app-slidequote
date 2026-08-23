@@ -147,6 +147,8 @@ Two rules hold throughout, and both exist to keep the migration cheap:
 
 ## Documents
 
+* [DEPLOY.md](DEPLOY.md) — putting the demo on a URL anyone can open, and what
+  to check once it is there.
 * [PROMPT.md](PROMPT.md) — the original build brief. The spec this is built against.
 * [MIGRATION_PLAN.md](MIGRATION_PLAN.md) — how each mock becomes real: target service,
   files touched, risks, acceptance criteria, rollout order.
