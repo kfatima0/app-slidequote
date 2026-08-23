@@ -15,13 +15,20 @@ from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from yquo.app.context import record
-from yquo.domain.entities import ConversationMessage, Order, OrderItem, Professional
+from yquo.domain.entities import (
+    ConversationMessage,
+    Order,
+    OrderItem,
+    Professional,
+    StructuredRequest,
+)
 from yquo.domain.enums import (
     Direction,
     EscalationReason,
     OrderStatus,
     ProfessionalChannel,
     Unit,
+    Urgency,
 )
 from yquo.domain.state_machine import escalate
 from yquo.domain.values import Actor
@@ -31,7 +38,6 @@ from yquo.ports.messaging import OutboundMessage
 
 if TYPE_CHECKING:
     from yquo.app.context import AppContext
-    from yquo.domain.entities import StructuredRequest
     from yquo.ports.interpreter import Interpretation
     from yquo.ports.messaging import InboundMessage
 
@@ -253,7 +259,8 @@ async def _create_order(
     inbound: InboundMessage,
     interpretation: Interpretation,
     pending: Order | None,
-) -> Order:
+) -> Order | None:
+    """None when nothing was recognised and a question went back instead."""
     """A complete request. Match each material, then hand to canvassing."""
     now = ctx.clock.now()
     structured = interpretation.request
@@ -266,6 +273,13 @@ async def _create_order(
 
     order_id = pending.id if pending else uuid4()
     items = await _match_items(ctx, order_id, structured)
+
+    if items and not any(item.matched_product_id for item in items):
+        # Nothing at all was recognised. Canvassing would send suppliers a
+        # request they cannot price, waste the round, and come back with four
+        # declines that say nothing useful. One question is faster and honest.
+        await _ask_about_unrecognised(ctx, professional, inbound, items, pending)
+        return None
 
     if pending is not None:
         order = pending.model_copy(
@@ -317,6 +331,75 @@ async def _create_order(
         },
     )
     await send(ctx, professional, it.ack_received(), order_id=order.id)
+    return order
+
+
+async def _ask_about_unrecognised(
+    ctx: AppContext,
+    professional: Professional,
+    inbound: InboundMessage,
+    items: tuple[OrderItem, ...],
+    pending: Order | None,
+) -> None:
+    """Nothing matched the catalog. Ask once, then hand to a person as usual."""
+    rounds = (pending.clarification_rounds if pending else 0) + 1
+    now = ctx.clock.now()
+
+    order = pending or await _draft_from_items(ctx, professional, inbound, items, rounds)
+    described = ", ".join(item.material_description for item in items)
+
+    if rounds > ctx.settings.policy.max_clarification_rounds:
+        escalated = escalate(
+            order,
+            EscalationReason.INTAKE_UNRESOLVED,
+            now=now,
+            actor=Actor.system(),
+            context={"rounds": rounds, "unmatched": described},
+        )
+        await ctx.repos.orders.update(escalated.order)
+        await ctx.repos.audit.append(escalated.audit)
+        await send(ctx, professional, it.handing_to_a_person(), order_id=order.id)
+        return
+
+    if pending is not None:
+        await ctx.repos.orders.update(
+            order.model_copy(update={"clarification_rounds": rounds, "updated_at": now})
+        )
+
+    await send(ctx, professional, it.ask_unrecognised(described), order_id=order.id)
+    await record(
+        ctx,
+        action="materials_unrecognised",
+        actor=Actor.system(),
+        order_id=order.id,
+        professional_id=professional.id,
+        input={"text": inbound.body},
+        output={"unmatched": described, "round": rounds},
+    )
+
+
+async def _draft_from_items(
+    ctx: AppContext,
+    professional: Professional,
+    inbound: InboundMessage,
+    items: tuple[OrderItem, ...],
+    rounds: int,
+) -> Order:
+    """An order held at `received` with what little was understood attached."""
+    now = ctx.clock.now()
+    order = Order(
+        id=items[0].order_id,
+        professional_id=professional.id,
+        original_request_text=inbound.body,
+        structured_request=StructuredRequest(),
+        urgency=Urgency.STANDARD,
+        dedupe_key=dedupe_key(professional.id, inbound.body, now.strftime("%Y-%m-%dT%H")),
+        clarification_rounds=rounds,
+        source_channel=inbound.channel,
+        created_at=now,
+        updated_at=now,
+    )
+    await ctx.repos.orders.add(order)
     return order
 
 

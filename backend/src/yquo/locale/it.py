@@ -40,6 +40,19 @@ def ask_material() -> str:
     return "Mi dice esattamente quale materiale le serve?"
 
 
+def ask_unrecognised(materials_it: str) -> str:
+    """Nothing matched the catalog, so ask rather than canvass for nothing.
+
+    Names what was read back, because the usual cause is a typo or a phrasing
+    the parser did not follow, and seeing it quoted is what makes that obvious.
+    """
+    return (
+        f"Non ho trovato a catalogo: {materials_it}.\n"
+        f"Me li può riscrivere con marca o misura? Ad esempio "
+        f'"100 m cavo FS17 2.5" oppure "4 magnetotermici 16A".'
+    )
+
+
 def ask_delivery_location() -> str:
     return "Dove devo far consegnare?"
 

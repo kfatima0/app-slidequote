@@ -217,7 +217,11 @@ class RuleBasedInterpreter:
                 continue
 
             quantity, unit, remainder = self._quantity(segment)
-            description = _strip_articles(remainder.strip(" .-") or segment.strip(" .-"))
+            raw = remainder.strip(" .-") or segment.strip(" .-")
+            # Pulling a quantity out of the middle leaves a gap. The
+            # description is read back to the professional, so it has to
+            # look like something a person wrote.
+            description = _strip_articles(re.sub(r"\s+", " ", raw).strip())
             if not description or not any(c.isalpha() for c in description):
                 continue
 
