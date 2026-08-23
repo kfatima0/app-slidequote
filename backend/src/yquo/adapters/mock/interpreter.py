@@ -111,9 +111,16 @@ URGENCY_CLAUSE = re.compile(
 )
 
 #: Phrases that are conversation, not materials.
+#:
+#: The pronoun is optional throughout. "Servono 3 differenziali" is as ordinary
+#: as "mi servono 3 differenziali", and missing it costs the quantity: the
+#: leading number is no longer leading, so it reads as a spec instead of an
+#: amount and the professional gets asked a question they already answered.
 NOISE = re.compile(
-    r"^(?:ciao|buongiorno|buonasera|salve|grazie|mi servono?|mi serve|avrei bisogno"
-    r"|vorrei|puoi|potresti|per favore|per cortesia|senti|allora)\b\s*",
+    r"^(?:ciao|buongiorno|buonasera|salve|grazie"
+    r"|(?:mi\s+)?(?:servono|serve|servirebbero|servirebbe)"
+    r"|(?:avrei\s+)?bisogno(?:\s+di)?|vorrei|volevo|puoi|potresti"
+    r"|per favore|per cortesia|senti|allora|dunque)\b\s*",
     re.IGNORECASE,
 )
 
