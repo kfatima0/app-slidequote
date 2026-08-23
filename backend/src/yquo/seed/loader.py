@@ -188,12 +188,26 @@ def load_seed(*, clock: Clock) -> SeedData:
     )
 
 
-async def hydrate(repos: Repositories, *, clock: Clock) -> SeedData:
-    """Fill empty repositories from the fixtures. Called once at startup."""
-    seed = load_seed(clock=clock)
+async def install(repos: Repositories, seed: SeedData) -> SeedData:
+    """Put an already-built world into empty repositories.
+
+    Separate from `load_seed` because building the seed is the expensive part
+    (Pydantic validating 195 products), while installing it is dictionary
+    inserts. One demo world per visitor is only affordable if the seed is built
+    once and installed many times.
+
+    Sharing the entity objects across worlds is safe precisely because they are
+    frozen: a repository update stores a new instance rather than mutating the
+    one it was given, so one visitor's changes cannot reach another's world.
+    """
     for professional in seed.professionals:
         await repos.professionals.add(professional)
     for supplier in seed.suppliers:
         await repos.suppliers.add(supplier)
     await repos.products.add_many(seed.products)
     return seed
+
+
+async def hydrate(repos: Repositories, *, clock: Clock) -> SeedData:
+    """Build a world and install it. Convenient for tests and one-off scripts."""
+    return await install(repos, load_seed(clock=clock))

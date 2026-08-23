@@ -104,6 +104,29 @@ cd backend && uv run mypy
 Note that running the backend by hand skips the demo pacing the script sets up:
 see the comment at the top of `api.ps1` for what it widens and why.
 
+## One demo world per visitor
+
+Everything lives in memory, so a single shared world would mean the first person
+to open a deployed link seeing a stranger's chat and a stranger's orders. That is
+worse than not sending the link, so isolation exists before deployment rather
+than after it.
+
+Each browser generates an opaque id, keeps it in local storage, and sends it as
+`X-YQuo-Session` (as a `session` query parameter on the event stream, which
+cannot carry headers). The server keeps one orchestrator per id: its own
+repositories, clock, agents and event bus. A request without a valid id falls
+back to one shared world, which keeps `curl` and `/docs` usable.
+
+Worlds share a single pre-built seed. Building it validates 195 products and
+costs about 70ms; installing it into a fresh world is dictionary inserts. That
+turns a visitor from 376ms and a full revalidation into **0.3ms and ~300KB**.
+Sharing the entity objects is safe precisely because they are frozen: a
+repository update stores a new instance rather than mutating the one it holds, so
+one visitor's changes cannot reach another's world.
+
+Idle worlds are forgotten after two hours and the total is capped at 200, so a
+crawler sending random ids cannot exhaust memory.
+
 ## Layout
 
 ```

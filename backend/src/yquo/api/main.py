@@ -31,8 +31,8 @@ from yquo.api.schemas import (
     OrderSummaryOut,
     SendMessageIn,
 )
+from yquo.api.sessions import SessionRegistry
 from yquo.app.orchestrator import Orchestrator
-from yquo.composition import build
 from yquo.config.settings import Settings
 from yquo.domain.enums import OrderStatus, ProfessionalChannel
 from yquo.ports.messaging import InboundMessage
@@ -46,11 +46,11 @@ SSE_KEEPALIVE_S = 15.0
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    app.state.orchestrator = await build(Settings())
+    app.state.sessions = SessionRegistry(settings=Settings())
     try:
         yield
     finally:
-        await app.state.orchestrator.shutdown()
+        await app.state.sessions.shutdown()
 
 
 app = FastAPI(title="YQuo demo harness", version="0.1.0", lifespan=lifespan)
@@ -65,8 +65,29 @@ app.add_middleware(
 )
 
 
-def get_orchestrator(request: Request) -> Orchestrator:
-    return request.app.state.orchestrator  # type: ignore[no-any-return]
+#: The browser generates this and keeps it in local storage. Sent as a header on
+#: ordinary requests and as a query parameter on the event stream, because
+#: EventSource cannot set headers.
+SESSION_HEADER = "X-YQuo-Session"
+
+
+def session_id(request: Request) -> str:
+    """Which visitor is this.
+
+    Missing or malformed falls back to one shared world. That keeps curl and the
+    /docs page usable without ceremony, while any real browser sends its own id
+    and gets its own world.
+    """
+    registry: SessionRegistry = request.app.state.sessions
+    candidate = request.headers.get(SESSION_HEADER) or request.query_params.get("session")
+    if candidate and registry.is_valid(candidate):
+        return candidate
+    return "shared"
+
+
+async def get_orchestrator(request: Request) -> Orchestrator:
+    registry: SessionRegistry = request.app.state.sessions
+    return await registry.get(session_id(request))
 
 
 # Runtime imports above, not TYPE_CHECKING ones: FastAPI resolves these
@@ -76,11 +97,13 @@ Orch = Annotated[Orchestrator, Depends(get_orchestrator)]
 
 
 @app.get("/api/health")
-async def health(orch: Orch) -> dict[str, object]:
+async def health(request: Request, orch: Orch) -> dict[str, object]:
+    registry: SessionRegistry = request.app.state.sessions
     return {
         "status": "ok",
         "all_mocked": orch.ctx.settings.adapters.all_mocked,
         "now": orch.ctx.clock.now().isoformat(),
+        "active_sessions": registry.active,
     }
 
 
@@ -243,11 +266,9 @@ async def reset(request: Request) -> DemoStateOut:
     Everything is in memory and every id is derived from a stable name, so a
     reset returns to exactly the same starting point. That is what makes a
     rehearsed walkthrough safe to repeat in front of an audience.
+
+    Scoped to the caller: one visitor resetting cannot wipe another's demo.
     """
-    old: Orchestrator = request.app.state.orchestrator
-    await old.shutdown()
-    # Keep the bus, drop its history: the browsers watching are not being reset,
-    # but the events they would replay point at orders that no longer exist.
-    old.ctx.bus.clear_history()
-    request.app.state.orchestrator = await build(Settings(), bus=old.ctx.bus)
-    return await demo_state(request.app.state.orchestrator)
+    registry: SessionRegistry = request.app.state.sessions
+    fresh = await registry.reset(session_id(request))
+    return await demo_state(fresh)

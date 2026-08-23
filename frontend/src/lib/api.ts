@@ -11,6 +11,53 @@
 
 const BASE = import.meta.env.PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
 
+/**
+ * This browser's own demo world.
+ *
+ * Everything on the server is in memory, so without an id every visitor would
+ * share one world and see each other's chats and orders. The id is generated
+ * here and kept in local storage, which means a reload keeps your world and a
+ * different browser gets a different one.
+ *
+ * Not a cookie: the page and the API are different origins, and cross-site
+ * cookies need HTTPS even locally. Not a secret either: there is nothing to
+ * protect, every world is fabricated data.
+ */
+const SESSION_KEY = "yquo.session";
+
+function newSessionId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID().replace(/-/g, "");
+  }
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+function readSessionId(): string {
+  // Server-side rendering has no storage and makes no requests; the id is only
+  // ever needed once the island is running in a browser.
+  if (typeof localStorage === "undefined") return "shared";
+  try {
+    const existing = localStorage.getItem(SESSION_KEY);
+    if (existing) return existing;
+    const fresh = newSessionId();
+    localStorage.setItem(SESSION_KEY, fresh);
+    return fresh;
+  } catch {
+    // Private browsing can refuse storage. A per-tab id is still better than
+    // sharing a world with strangers.
+    return newSessionId();
+  }
+}
+
+let sessionId: string | null = null;
+
+export function session(): string {
+  sessionId ??= readSessionId();
+  return sessionId;
+}
+
+const SESSION_HEADER = "X-YQuo-Session";
+
 export type Direction = "inbound" | "outbound";
 export type Channel = "ecommerce" | "voice" | "email";
 
@@ -125,7 +172,9 @@ export interface StreamEvent {
 }
 
 async function get<T>(path: string): Promise<T> {
-  const response = await fetch(`${BASE}${path}`);
+  const response = await fetch(`${BASE}${path}`, {
+    headers: { [SESSION_HEADER]: session() },
+  });
   if (!response.ok) {
     throw new Error(`GET ${path} -> ${response.status}`);
   }
@@ -150,7 +199,10 @@ export const api = {
   ): Promise<Message[]> {
     const response = await fetch(`${BASE}/api/simulator/message`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        [SESSION_HEADER]: session(),
+      },
       body: JSON.stringify({ professional_id: professionalId, body, channel }),
     });
     if (!response.ok) {
@@ -160,7 +212,10 @@ export const api = {
   },
 
   async reset(): Promise<DemoState> {
-    const response = await fetch(`${BASE}/api/demo/reset`, { method: "POST" });
+    const response = await fetch(`${BASE}/api/demo/reset`, {
+      method: "POST",
+      headers: { [SESSION_HEADER]: session() },
+    });
     if (!response.ok) throw new Error("reset failed");
     return (await response.json()) as DemoState;
   },
@@ -181,7 +236,11 @@ export const api = {
     onError?: () => void;
   }): () => void {
     const { onEvent, onOpen, onError } = handlers;
-    const source = new EventSource(`${BASE}/api/stream`);
+    // EventSource cannot set headers, so the session travels as a query
+    // parameter here. Same id, same world.
+    const source = new EventSource(
+      `${BASE}/api/stream?session=${encodeURIComponent(session())}`,
+    );
     source.onopen = () => onOpen?.();
     source.onerror = () => onError?.();
     const kinds = [

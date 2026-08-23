@@ -23,7 +23,7 @@ from yquo.app.context import AppContext
 from yquo.app.events import EventBus
 from yquo.app.orchestrator import Orchestrator
 from yquo.config.settings import Settings
-from yquo.seed import hydrate
+from yquo.seed import SeedData, install, load_seed
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -93,8 +93,11 @@ async def build(
     start: datetime | None = None,
     seed: bool = True,
     bus: EventBus | None = None,
+    seed_data: SeedData | None = None,
 ) -> Orchestrator:
     """Assemble the whole system and return the one object the API talks to.
+
+    `seed_data` lets many worlds share one already-built seed; see seed.install.
 
     `bus` lets a rebuild keep the existing event bus. A demo reset throws away
     the world but not the browsers watching it: a fresh bus would leave every
@@ -106,7 +109,9 @@ async def build(
     clock = build_clock(settings, start=start)
     repos = build_repositories(settings)
     if seed:
-        await hydrate(repos, clock=clock)
+        # A caller building many worlds passes the seed in, so the expensive
+        # part happens once rather than per visitor.
+        await install(repos, seed_data or load_seed(clock=clock))
 
     ctx = AppContext(
         repos=repos,
