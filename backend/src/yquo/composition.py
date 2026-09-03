@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 from yquo.adapters.clock import AcceleratedClock, ManualClock, SystemClock
 from yquo.adapters.memory import InMemoryRepositories
 from yquo.adapters.mock.agents import build_agents
+from yquo.adapters.mock.ai import MockAI
 from yquo.adapters.mock.catalog_matcher import KeywordCatalogMatcher
 from yquo.adapters.mock.interpreter import RuleBasedInterpreter
 from yquo.adapters.mock.messaging import SimulatorMessaging
@@ -29,6 +30,7 @@ from yquo.seed import SeedData, install, load_seed
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from yquo.ports.ai import AIPort
     from yquo.ports.catalog_matcher import CatalogMatcherPort
     from yquo.ports.clock import Clock
     from yquo.ports.interpreter import InterpreterPort
@@ -77,14 +79,39 @@ def build_messaging(
             return SimulatorMessaging(clock)
 
 
-def build_interpreter(settings: Settings) -> InterpreterPort:
+def build_interpreter(settings: Settings, providers: ProviderConfig) -> InterpreterPort:
+    """Reading a professional's message.
+
+    Lazy import for the same reason as messaging: a mock-only run must not need
+    the OpenAI SDK on its import path, and a missing key should be reported by
+    `require_openai` with the variable name.
+    """
     match settings.adapters.interpreter:
-        case "openai":  # pragma: no cover - migration step 3
-            raise NotImplementedError(
-                "the OpenAI interpreter is not built yet; see MIGRATION_PLAN.md §4"
-            )
+        case "openai":
+            from yquo.adapters.openai.interpreter import OpenAIInterpreter
+
+            return OpenAIInterpreter(providers.require_openai())
         case _:
             return RuleBasedInterpreter()
+
+
+def build_ai(
+    settings: Settings, clock: Clock, repos: Repositories, providers: ProviderConfig
+) -> AIPort:
+    """Reading supplier quotes.
+
+    Selected by the same switch as the interpreter. Splitting them would let a
+    deployment read requests with a model and quotes with a regex, which is a
+    combination nobody wants and everybody would eventually configure by
+    accident.
+    """
+    match settings.adapters.interpreter:
+        case "openai":
+            from yquo.adapters.openai.extraction import OpenAIExtractor
+
+            return OpenAIExtractor(providers.require_openai(), clock, repos)
+        case _:
+            return MockAI(clock)
 
 
 def build_matcher(settings: Settings, repos: Repositories) -> CatalogMatcherPort:
@@ -129,7 +156,8 @@ async def build(
         clock=clock,
         settings=settings,
         messaging=build_messaging(settings, clock, repos, providers),
-        interpreter=build_interpreter(settings),
+        interpreter=build_interpreter(settings, providers),
+        ai=build_ai(settings, clock, repos, providers),
         matcher=build_matcher(settings, repos),
         agents=build_agents(repos.products, clock),
         bus=bus or EventBus(),

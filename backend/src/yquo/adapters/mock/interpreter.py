@@ -28,13 +28,14 @@ import re
 from decimal import Decimal, InvalidOperation
 from typing import TYPE_CHECKING
 
+from yquo.adapters.geo import resolve_delivery
 from yquo.domain.entities import RequestedMaterial, StructuredRequest
 from yquo.domain.enums import Unit, Urgency
-from yquo.domain.values import Address
 from yquo.locale import it
 from yquo.ports.interpreter import Interpretation
 
 if TYPE_CHECKING:
+    from yquo.domain.values import Address
     from yquo.ports.interpreter import InterpretationRequest
 
 #: Italian unit words to the catalog's units. Ordered longest-first when matching
@@ -77,22 +78,6 @@ LOCATION = re.compile(
     r"(?P<city>[A-ZÀ-Ù][\wÀ-ÿ'’]+(?:\s+[A-ZÀ-Ù][\wÀ-ÿ'’]+){0,2})"  # noqa: RUF001
 )
 
-#: DEMO DATA. Enough Trentino towns for the seeded scenarios. A real deployment
-#: geocodes instead; this exists so a named delivery town resolves to a full
-#: address rather than being silently dropped.
-DEMO_TOWNS: dict[str, tuple[str, str]] = {
-    "trento": ("TN", "38122"),
-    "rovereto": ("TN", "38068"),
-    "pergine valsugana": ("TN", "38057"),
-    "pergine": ("TN", "38057"),
-    "borgo valsugana": ("TN", "38051"),
-    "riva del garda": ("TN", "38066"),
-    "arco": ("TN", "38062"),
-    "cles": ("TN", "38023"),
-    "mezzolombardo": ("TN", "38017"),
-    "lavis": ("TN", "38015"),
-    "bolzano": ("BZ", "39100"),
-}
 
 #: Segment separators: "e", commas, newlines, bullets, plus signs.
 #: A comma between two digits is a decimal separator, not a separator between
@@ -193,28 +178,8 @@ class RuleBasedInterpreter:
         to the same yard should not be asked where to deliver every time.
         """
         match = LOCATION.search(text)
-        if match:
-            city = match.group("city").strip()
-            known = DEMO_TOWNS.get(city.casefold())
-            if known:
-                province, postal = known
-                return (
-                    Address(
-                        street=request.professional.default_delivery_address.street,
-                        city=city,
-                        province=province,
-                        postal_code=postal,
-                    ),
-                    f"delivery town '{city}' taken from the message",
-                )
-            return (
-                request.professional.default_delivery_address,
-                f"town '{city}' not in the demo gazetteer; used the registered address",
-            )
-        return (
-            request.professional.default_delivery_address,
-            "no town named; used the professional's registered address",
-        )
+        city = match.group("city").strip() if match else None
+        return resolve_delivery(city, request.professional)
 
     def _materials(self, text: str) -> list[RequestedMaterial]:
         materials: list[RequestedMaterial] = []

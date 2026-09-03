@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from yquo.config.settings import Settings
     from yquo.domain.enums import Channel
     from yquo.domain.values import Actor
+    from yquo.ports.ai import AIPort
     from yquo.ports.catalog_matcher import CatalogMatcherPort
     from yquo.ports.clock import Clock
     from yquo.ports.interpreter import InterpreterPort
@@ -44,6 +45,10 @@ class AppContext:
     settings: Settings
     messaging: MessagingPort
     interpreter: InterpreterPort
+    #: Quote extraction and comparison. Separate from `interpreter` because they
+    #: fail differently and are billed differently, and one adapter implementing
+    #: both must not make them one dependency.
+    ai: AIPort
     matcher: CatalogMatcherPort
     agents: dict[Channel, SupplierAgent]
     bus: EventBus
