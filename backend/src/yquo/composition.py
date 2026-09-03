@@ -17,9 +17,11 @@ from yquo.adapters.clock import AcceleratedClock, ManualClock, SystemClock
 from yquo.adapters.memory import InMemoryRepositories
 from yquo.adapters.mock.agents import build_agents
 from yquo.adapters.mock.ai import MockAI
+from yquo.adapters.mock.call_agent import MockCallAgent
 from yquo.adapters.mock.catalog_matcher import KeywordCatalogMatcher
 from yquo.adapters.mock.interpreter import RuleBasedInterpreter
 from yquo.adapters.mock.messaging import SimulatorMessaging
+from yquo.adapters.mock.voice import MockVoice
 from yquo.app.context import AppContext
 from yquo.app.events import EventBus
 from yquo.app.orchestrator import Orchestrator
@@ -36,6 +38,7 @@ if TYPE_CHECKING:
     from yquo.ports.interpreter import InterpreterPort
     from yquo.ports.messaging import MessagingPort
     from yquo.ports.repositories import Repositories
+    from yquo.ports.voice import CallAgentPort, VoicePort
 
 
 def build_clock(settings: Settings, *, start: datetime | None = None) -> Clock:
@@ -114,6 +117,44 @@ def build_ai(
             return MockAI(clock)
 
 
+def build_call_agent(settings: Settings, providers: ProviderConfig) -> CallAgentPort:
+    """What the assistant says on a call.
+
+    Follows the interpreter switch, not the messaging one: this is a model
+    decision, and a deployment reading quotes with a model while improvising
+    phone calls from a regex is not a combination anyone means to choose.
+    """
+    match settings.adapters.interpreter:
+        case "openai":
+            from yquo.adapters.openai.call_agent import OpenAICallAgent
+
+            return OpenAICallAgent(providers.require_openai())
+        case _:
+            return MockCallAgent()
+
+
+def build_voice(
+    settings: Settings,
+    clock: Clock,
+    repos: Repositories,
+    providers: ProviderConfig,
+    agent: CallAgentPort,
+) -> VoicePort:
+    """Who actually dials.
+
+    Follows the messaging switch, because the carrier is Twilio in both cases and
+    the credentials are the same ones. The mock drives the same agent against a
+    scripted supplier, so switching this changes the phone line and nothing else.
+    """
+    match settings.adapters.messaging:
+        case "twilio":
+            from yquo.adapters.twilio.voice import TwilioVoice
+
+            return TwilioVoice(providers.require_twilio(), clock, repos)
+        case _:
+            return MockVoice(clock, repos, agent)
+
+
 def build_matcher(settings: Settings, repos: Repositories) -> CatalogMatcherPort:
     match settings.adapters.matcher:
         case "pgvector":  # pragma: no cover - migration step 3
@@ -151,6 +192,9 @@ async def build(
         # part happens once rather than per visitor.
         await install(repos, seed_data or load_seed(clock=clock))
 
+    call_agent = build_call_agent(settings, providers)
+    voice = build_voice(settings, clock, repos, providers, call_agent)
+
     ctx = AppContext(
         repos=repos,
         clock=clock,
@@ -158,6 +202,8 @@ async def build(
         messaging=build_messaging(settings, clock, repos, providers),
         interpreter=build_interpreter(settings, providers),
         ai=build_ai(settings, clock, repos, providers),
+        voice=voice,
+        call_agent=call_agent,
         matcher=build_matcher(settings, repos),
         agents=build_agents(repos.products, clock),
         bus=bus or EventBus(),

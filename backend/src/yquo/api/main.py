@@ -19,12 +19,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
 from uuid import UUID
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from yquo.api import mappers, twilio_webhooks
+from yquo.api import mappers, twilio_voice, twilio_webhooks
 from yquo.api.schemas import (
     ArtifactOut,
     AuditEntryOut,
@@ -126,6 +126,21 @@ def get_orchestrator_sync(request: Request) -> Orchestrator:
     return existing
 
 
+async def get_orchestrator_for_socket(socket: WebSocket) -> Orchestrator:
+    """The same shared world, reached from a websocket.
+
+    A websocket has app state but is not a Request, so it cannot go through the
+    dependency above. Provider sockets are not session-scoped for the same
+    reason provider webhooks are not.
+
+    Unlike the webhook accessor this creates the world if it is missing, rather
+    than refusing. A refusal here is a live phone call with nobody on our end,
+    and the shared world is the same one any request without a session id gets.
+    """
+    registry: SessionRegistry = socket.app.state.sessions
+    return await registry.get("shared")
+
+
 # Runtime imports above, not TYPE_CHECKING ones: FastAPI resolves these
 # annotations when it builds each route, so a type-checker-only import leaves the
 # route unbuildable and fails on the first request instead of at import time.
@@ -135,6 +150,7 @@ Orch = Annotated[Orchestrator, Depends(get_orchestrator)]
 # Provider webhooks. Mounted separately because they are signed rather than
 # session-scoped, and because they answer with TwiML rather than JSON.
 app.include_router(twilio_webhooks.router)
+app.include_router(twilio_voice.router)
 
 
 @app.get("/api/health")

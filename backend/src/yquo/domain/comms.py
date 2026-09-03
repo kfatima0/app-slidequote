@@ -94,7 +94,12 @@ class CallSession(Entity):
     the text that a quote was derived from.
     """
 
+    #: Our own id for the call, chosen before dialling. Twilio's SID does not
+    #: exist until `calls.create` returns, and by then the answer webhook may
+    #: already have arrived, so the row cannot be keyed on it.
     provider_call_id: str = Field(min_length=1, max_length=128)
+    #: Twilio's SID, once known. What an operator searches the console by.
+    provider_ref: str | None = Field(default=None, max_length=128)
     order_id: UUID | None = None
     supplier_id: UUID | None = None
     direction: str = Field(pattern=r"^(inbound|outbound)$")

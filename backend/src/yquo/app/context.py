@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from yquo.ports.messaging import MessagingPort
     from yquo.ports.repositories import Repositories
     from yquo.ports.supplier_agent import SupplierAgent
+    from yquo.ports.voice import CallAgentPort, VoicePort
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,6 +50,12 @@ class AppContext:
     #: fail differently and are billed differently, and one adapter implementing
     #: both must not make them one dependency.
     ai: AIPort
+    #: Placing and holding phone calls, and deciding what to say on them. Two
+    #: ports rather than one: the carrier and the brain fail independently, and
+    #: a call that connects to a broken agent is a different problem from a call
+    #: that never connects.
+    voice: VoicePort
+    call_agent: CallAgentPort
     matcher: CatalogMatcherPort
     agents: dict[Channel, SupplierAgent]
     bus: EventBus

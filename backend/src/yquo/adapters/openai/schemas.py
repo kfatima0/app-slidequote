@@ -87,3 +87,16 @@ class WireRequest(BaseModel):
     #: What the model could not work out, so the caller knows which question to
     #: ask rather than asking a generic one.
     missing: list[str] = Field(description="Campi mancanti: 'material', 'quantity'")
+
+
+class WireCallReply(BaseModel):
+    """What the agent says next on a call, and whether that ends it."""
+
+    say_it: str = Field(description="Cosa dire, in italiano parlato. Frasi brevi.")
+    hang_up: bool = Field(description="True se la telefonata deve chiudersi dopo questa frase")
+    outcome: str | None = Field(
+        description=(
+            "Solo se lo sai con certezza: 'human_requested' se hanno chiesto una "
+            "persona, 'voicemail' se e una segreteria. Altrimenti null."
+        )
+    )
