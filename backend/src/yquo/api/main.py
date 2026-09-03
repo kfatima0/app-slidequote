@@ -24,7 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from yquo.api import mappers
+from yquo.api import mappers, twilio_webhooks
 from yquo.api.schemas import (
     ArtifactOut,
     AuditEntryOut,
@@ -49,7 +49,11 @@ SSE_KEEPALIVE_S = 15.0
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    app.state.sessions = SessionRegistry(settings=Settings())
+    registry = SessionRegistry(settings=Settings())
+    app.state.sessions = registry
+    # Provider webhooks act on the shared world and cannot create one, so it is
+    # built up front rather than on the first Twilio callback.
+    await registry.get("shared")
     try:
         yield
     finally:
@@ -108,10 +112,29 @@ async def get_orchestrator(request: Request) -> Orchestrator:
     return await registry.get(session_id(request))
 
 
+def get_orchestrator_sync(request: Request) -> Orchestrator:
+    """The shared world, for callers that cannot await a dependency.
+
+    Provider webhooks belong to no browser session: Twilio has no session id and
+    a supplier replying to a real message is not a demo visitor. They act on the
+    shared world, which is the same one a request without a session id gets.
+    """
+    registry: SessionRegistry = request.app.state.sessions
+    existing = registry.peek("shared")
+    if existing is None:
+        raise HTTPException(status_code=503, detail="no shared world yet")
+    return existing
+
+
 # Runtime imports above, not TYPE_CHECKING ones: FastAPI resolves these
 # annotations when it builds each route, so a type-checker-only import leaves the
 # route unbuildable and fails on the first request instead of at import time.
 Orch = Annotated[Orchestrator, Depends(get_orchestrator)]
+
+
+# Provider webhooks. Mounted separately because they are signed rather than
+# session-scoped, and because they answer with TwiML rather than JSON.
+app.include_router(twilio_webhooks.router)
 
 
 @app.get("/api/health")

@@ -100,6 +100,16 @@ class SessionRegistry:
             )
             return orchestrator
 
+    def peek(self, session_id: str) -> Orchestrator | None:
+        """The world for this id if it exists, without creating one.
+
+        Used by provider webhooks, which must act on an existing world rather
+        than conjure one: a Twilio callback arriving for an order created in
+        another world would otherwise silently start a third.
+        """
+        session = self._sessions.get(session_id)
+        return session.orchestrator if session else None
+
     async def reset(self, session_id: str) -> Orchestrator:
         """Throw away this visitor's world and give them a fresh one.
 

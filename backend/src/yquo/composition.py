@@ -22,6 +22,7 @@ from yquo.adapters.mock.messaging import SimulatorMessaging
 from yquo.app.context import AppContext
 from yquo.app.events import EventBus
 from yquo.app.orchestrator import Orchestrator
+from yquo.config.providers import ProviderConfig
 from yquo.config.settings import Settings
 from yquo.seed import SeedData, install, load_seed
 
@@ -57,12 +58,21 @@ def build_repositories(settings: Settings) -> Repositories:
             return InMemoryRepositories()
 
 
-def build_messaging(settings: Settings, clock: Clock) -> MessagingPort:
+def build_messaging(
+    settings: Settings, clock: Clock, repos: Repositories, providers: ProviderConfig
+) -> MessagingPort:
+    """The one place the real provider is named.
+
+    Importing the Twilio adapter lazily keeps the SDK off the import path of a
+    mock-only run, so a demo starts without it and a missing credential is
+    reported by `require_twilio` with the variable name rather than by an SDK
+    constructor several frames down.
+    """
     match settings.adapters.messaging:
-        case "twilio":  # pragma: no cover - migration step 2
-            raise NotImplementedError(
-                "the Twilio adapter is not built yet; see MIGRATION_PLAN.md §3"
-            )
+        case "twilio":
+            from yquo.adapters.twilio.messaging import TwilioMessaging
+
+            return TwilioMessaging(providers.require_twilio(), clock, repos)
         case _:
             return SimulatorMessaging(clock)
 
@@ -105,6 +115,7 @@ async def build(
     so the page would look connected and never update again.
     """
     settings = settings or Settings()
+    providers = ProviderConfig()
 
     clock = build_clock(settings, start=start)
     repos = build_repositories(settings)
@@ -117,7 +128,7 @@ async def build(
         repos=repos,
         clock=clock,
         settings=settings,
-        messaging=build_messaging(settings, clock),
+        messaging=build_messaging(settings, clock, repos, providers),
         interpreter=build_interpreter(settings),
         matcher=build_matcher(settings, repos),
         agents=build_agents(repos.products, clock),

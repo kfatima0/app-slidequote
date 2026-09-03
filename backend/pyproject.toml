@@ -5,9 +5,12 @@ description = "YQuo — mock-first MVP. Italian trade-supply ordering over Whats
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi>=0.115",
+    "openai==3.7.0",
     "pydantic>=2.9",
     "pydantic-settings>=2.5",
+    "python-multipart==0.0.32",
     "pyyaml>=6.0",
+    "twilio==9.11.0",
     "uvicorn[standard]>=0.32",
 ]
 
@@ -40,6 +43,12 @@ strict = true
 warn_unreachable = true
 disallow_any_explicit = false
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+# Neither SDK ships type information. Their surface is used narrowly and wrapped
+# by our own typed ports, so the untyped boundary stops at the adapter.
+module = ["twilio.*", "requests.*"]
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 # The domain layer is the strictest tier: it is production code that survives the
