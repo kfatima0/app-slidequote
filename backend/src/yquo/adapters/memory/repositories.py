@@ -19,6 +19,15 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
+from yquo.adapters.memory.comms_repositories import (
+    InMemoryCallRepository,
+    InMemoryConsentRepository,
+    InMemoryExtractedQuoteRepository,
+    InMemoryMediaRepository,
+    InMemoryProviderMessageRepository,
+    InMemorySpendRepository,
+    InMemorySupplierContactRepository,
+)
 from yquo.domain.entities import (
     AuditRecord,
     ClientQuote,
@@ -435,6 +444,9 @@ class InMemoryRepositories:
     """The bundle handed to orchestration. Satisfies `ports.repositories.Repositories`."""
 
     def __init__(self) -> None:
+        # The provider-facing stores live in a sibling module: they arrived with
+        # Twilio and OpenAI and have different concerns (idempotency on a
+        # provider id, bytes on disk, spend ceilings) from the original ten.
         self.professionals = InMemoryProfessionalRepository()
         self.suppliers = InMemorySupplierRepository()
         self.products = InMemoryProductRepository()
@@ -446,3 +458,10 @@ class InMemoryRepositories:
         self.invoices = InMemoryInvoiceRepository()
         self.artifacts = InMemoryArtifactStore()
         self.audit = InMemoryAuditLogRepository()
+        self.provider_messages = InMemoryProviderMessageRepository()
+        self.media = InMemoryMediaRepository()
+        self.calls = InMemoryCallRepository()
+        self.consent = InMemoryConsentRepository()
+        self.supplier_contacts = InMemorySupplierContactRepository()
+        self.extracted_quotes = InMemoryExtractedQuoteRepository()
+        self.spend = InMemorySpendRepository()

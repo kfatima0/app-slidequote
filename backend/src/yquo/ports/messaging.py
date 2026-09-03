@@ -34,10 +34,29 @@ class OutboundMessage(ValueObject):
     #: Registered WhatsApp template, when the session window has closed. None
     #: means a free-form message, only legal inside the window.
     template_name: str | None = None
+    #: Ordered substitutions for the template's numbered placeholders. Ignored
+    #: for free-form messages.
+    template_variables: tuple[str, ...] = ()
+    #: To a supplier rather than the professional. Decides which sender number
+    #: is used and which consent record governs the send.
+    supplier_id: UUID | None = None
+    #: Threaded through every message, call and model invocation for one job.
+    request_id: str = ""
+
+
+class InboundMedia(ValueObject):
+    """A file attached to an inbound message.
+
+    The URL is the provider's and expires, so it is downloaded before it is
+    useful. Kept here only so the download has somewhere to start from.
+    """
+
+    url: str = Field(min_length=1)
+    content_type: str = Field(min_length=1)
 
 
 class InboundMessage(ValueObject):
-    """A message from a professional, normalized across channels.
+    """A message from a professional or a supplier, normalized across channels.
 
     A voice call arrives here as its transcription, so Flow 2 has one intake
     path rather than two.
@@ -48,6 +67,13 @@ class InboundMessage(ValueObject):
     channel: ProfessionalChannel
     external_message_id: str = Field(min_length=1)
     received_at: datetime
+    #: Suppliers answer with PDFs and photographs of price lists far more often
+    #: than with typed numbers, so media is a first-class part of an inbound
+    #: message rather than an afterthought.
+    media: tuple[InboundMedia, ...] = ()
+    #: Present when the sender is a supplier rather than the professional. The
+    #: same webhook carries both, told apart by which number they came from.
+    supplier_id: UUID | None = None
 
 
 class DeliveryReceipt(ValueObject):
@@ -72,5 +98,15 @@ class MessagingPort(Protocol):
 
         Always True in the mock. Real behaviour arrives with the Twilio adapter;
         callers are written against the honest signature from the start.
+        """
+        ...
+
+    async def download_media(self, url: str) -> tuple[bytes, str]:
+        """Fetch an inbound attachment, returning its bytes and content type.
+
+        Separate from receiving the message because provider media URLs need
+        authentication and expire, so the bytes have to be pulled promptly and
+        kept. Returns the content type the provider reported rather than one
+        guessed from the extension.
         """
         ...

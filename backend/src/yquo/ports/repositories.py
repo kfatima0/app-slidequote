@@ -21,8 +21,17 @@ from typing import TYPE_CHECKING, Protocol
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from datetime import datetime
+    from decimal import Decimal
     from uuid import UUID
 
+    from yquo.domain.comms import (
+        CallSession,
+        ConsentRecord,
+        MediaAttachment,
+        ProviderMessage,
+        SpendRecord,
+        SupplierContact,
+    )
     from yquo.domain.entities import (
         AuditRecord,
         ClientQuote,
@@ -36,6 +45,7 @@ if TYPE_CHECKING:
         Supplier,
     )
     from yquo.domain.enums import ClientQuoteStatus, InvoiceStatus, OrderStatus
+    from yquo.domain.extraction import ExtractedQuote
     from yquo.domain.values import Actor
     from yquo.ports.supplier_agent import AgentArtifact
 
@@ -242,6 +252,112 @@ class ArtifactRepository(Protocol):
         ...
 
 
+class ProviderMessageRepository(Protocol):
+    """Messages as the provider sees them, keyed by the provider's own id.
+
+    The unique key is what makes webhook redelivery safe. Twilio resends status
+    callbacks, sometimes out of order, and processing one twice would
+    double-count spend and re-run whatever the status change triggers.
+    """
+
+    async def upsert(self, message: ProviderMessage) -> tuple[ProviderMessage, bool]:
+        """Insert, or update the existing row for this provider id.
+
+        Returns ``(message, created)``. ``created is False`` on a redelivery,
+        which is how a caller knows not to act on it a second time.
+        """
+        ...
+
+    async def get(self, provider_message_id: str) -> ProviderMessage | None: ...
+
+    async def list_by_order(self, order_id: UUID) -> Sequence[ProviderMessage]: ...
+
+
+class MediaRepository(Protocol):
+    """Files suppliers sent, and their bytes.
+
+    Bytes rather than URLs: provider media links expire and need auth, so a
+    stored URL is worthless by the time anyone asks where a price came from.
+    """
+
+    async def put(self, attachment: MediaAttachment, content: bytes) -> MediaAttachment: ...
+
+    async def get(self, storage_key: str) -> tuple[MediaAttachment, bytes] | None: ...
+
+    async def list_by_order(self, order_id: UUID) -> Sequence[MediaAttachment]: ...
+
+    async def delete(self, storage_key: str) -> None:
+        """Erase one file. Exists for GDPR deletion requests, not for tidying."""
+        ...
+
+
+class CallRepository(Protocol):
+    async def add(self, call: CallSession) -> CallSession: ...
+
+    async def get(self, provider_call_id: str) -> CallSession | None: ...
+
+    async def update(self, call: CallSession) -> CallSession: ...
+
+    async def list_by_order(self, order_id: UUID) -> Sequence[CallSession]: ...
+
+
+class ConsentRepository(Protocol):
+    """Who may be contacted. Consulted before every outbound send."""
+
+    async def get(self, phone_e164: str) -> ConsentRecord | None: ...
+
+    async def set(self, record: ConsentRecord) -> ConsentRecord: ...
+
+    async def may_contact(self, phone_e164: str) -> bool:
+        """Absence means yes.
+
+        A number nobody has opted out is contactable; only an explicit STOP
+        revokes it. Failing closed here would mean never contacting a supplier
+        who has not previously texted us, which is every new supplier.
+        """
+        ...
+
+
+class SupplierContactRepository(Protocol):
+    """Per-supplier progress on one order."""
+
+    async def add(self, contact: SupplierContact) -> SupplierContact: ...
+
+    async def get(self, order_id: UUID, supplier_id: UUID) -> SupplierContact | None: ...
+
+    async def update(self, contact: SupplierContact) -> SupplierContact: ...
+
+    async def list_by_order(self, order_id: UUID) -> Sequence[SupplierContact]: ...
+
+    async def due(self, now: datetime) -> Sequence[SupplierContact]:
+        """Contacts whose next follow-up is owed. The job runner's queue."""
+        ...
+
+
+class ExtractedQuoteRepository(Protocol):
+    async def add(self, quote: ExtractedQuote) -> ExtractedQuote: ...
+
+    async def get(self, quote_id: UUID) -> ExtractedQuote | None: ...
+
+    async def update(self, quote: ExtractedQuote) -> ExtractedQuote: ...
+
+    async def list_by_order(self, order_id: UUID) -> Sequence[ExtractedQuote]: ...
+
+
+class SpendRepository(Protocol):
+    """What each job has cost, itemised.
+
+    Per order rather than aggregated, because "why did this cost four euro?" has
+    a specific answer: three calls and forty thousand tokens.
+    """
+
+    async def add(self, record: SpendRecord) -> SpendRecord: ...
+
+    async def total_for_order(self, order_id: UUID) -> Decimal: ...
+
+    async def list_by_order(self, order_id: UUID) -> Sequence[SpendRecord]: ...
+
+
 class Repositories(Protocol):
     """The bundle handed to orchestration. Composition builds it; nothing else.
 
@@ -284,3 +400,24 @@ class Repositories(Protocol):
 
     @property
     def audit(self) -> AuditLogRepository: ...
+
+    @property
+    def provider_messages(self) -> ProviderMessageRepository: ...
+
+    @property
+    def media(self) -> MediaRepository: ...
+
+    @property
+    def calls(self) -> CallRepository: ...
+
+    @property
+    def consent(self) -> ConsentRepository: ...
+
+    @property
+    def supplier_contacts(self) -> SupplierContactRepository: ...
+
+    @property
+    def extracted_quotes(self) -> ExtractedQuoteRepository: ...
+
+    @property
+    def spend(self) -> SpendRepository: ...

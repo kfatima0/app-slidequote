@@ -136,3 +136,96 @@ class MockPlacementFailure(StrEnum):
     NONE = "none"
     NO_ACK_FIRST_ATTEMPT = "no_ack_first_attempt"
     NEVER_ACKS = "never_acks"
+
+# --------------------------------------------------------------------------- #
+# Real-provider vocabularies
+#
+# These arrived with Twilio and OpenAI. A mock never had a message fail an hour
+# after being accepted, or a call reach voicemail, or a field come back that the
+# model was only 40% sure of, so none of it had a shape until now.
+# --------------------------------------------------------------------------- #
+
+
+class DeliveryStatus(StrEnum):
+    """Twilio message status, verbatim.
+
+    Their names are used unchanged so a status webhook maps straight onto this
+    without a translation table that can drift from their docs.
+    """
+
+    QUEUED = "queued"
+    SENDING = "sending"
+    SENT = "sent"
+    DELIVERED = "delivered"
+    READ = "read"
+    UNDELIVERED = "undelivered"
+    FAILED = "failed"
+
+    @property
+    def is_terminal(self) -> bool:
+        return self in (
+            DeliveryStatus.DELIVERED,
+            DeliveryStatus.READ,
+            DeliveryStatus.UNDELIVERED,
+            DeliveryStatus.FAILED,
+        )
+
+
+class CallOutcome(StrEnum):
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    NO_ANSWER = "no_answer"
+    BUSY = "busy"
+    VOICEMAIL = "voicemail"
+    FAILED = "failed"
+    #: The supplier asked for a person. Never argued with: it escalates.
+    HUMAN_REQUESTED = "human_requested"
+
+
+class ConsentStatus(StrEnum):
+    GRANTED = "granted"
+    #: STOP, or an Italian equivalent. Nothing outbound until they opt back in.
+    REVOKED = "revoked"
+
+
+class ContactState(StrEnum):
+    """Where one supplier has got to on one order.
+
+    Six suppliers progress independently, so this is per-contact rather than per
+    order. Every state is reachable and every state can be left.
+    """
+
+    TO_CONTACT = "to_contact"
+    CONTACTED = "contacted"
+    AWAITING_REPLY = "awaiting_reply"
+    REPLIED = "replied"
+    QUOTE_EXTRACTED = "quote_extracted"
+    DISCARDED = "discarded"
+    ERROR = "error"
+
+
+TERMINAL_CONTACT_STATES: frozenset[ContactState] = frozenset(
+    {ContactState.QUOTE_EXTRACTED, ContactState.DISCARDED, ContactState.ERROR}
+)
+
+
+class MediaKind(StrEnum):
+    PDF = "pdf"
+    IMAGE = "image"
+    AUDIO = "audio"
+    OTHER = "other"
+
+
+class ExtractionSource(StrEnum):
+    """Where a quote's text came from.
+
+    All four produce the same schema. The source is kept because it predicts
+    confidence: a photographed price list is read less reliably than a PDF, and
+    an Ops reviewer wants to know which they are looking at.
+    """
+
+    WHATSAPP_TEXT = "whatsapp_text"
+    PDF = "pdf"
+    PHOTO = "photo"
+    CALL_TRANSCRIPT = "call_transcript"
+    EMAIL = "email"
