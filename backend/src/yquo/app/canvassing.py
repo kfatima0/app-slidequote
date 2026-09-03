@@ -21,6 +21,7 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
+from yquo.app import outreach
 from yquo.app.context import record
 from yquo.app.events import Event
 from yquo.app.intake import send
@@ -71,6 +72,11 @@ async def canvass(ctx: AppContext, order: Order) -> list[Quote]:
         await _escalate(ctx, order, EscalationReason.NO_QUOTES_IN_SLA, {"shortlisted": 0})
         return []
 
+    # One row per supplier before anything goes out, so a crash between
+    # dispatching and recording leaves a supplier visibly un-contacted rather
+    # than invisibly contacted twice.
+    await outreach.open_contacts(ctx, order, shortlist)
+
     await record(
         ctx,
         action="canvassing_started",
@@ -117,6 +123,7 @@ async def canvass(ctx: AppContext, order: Order) -> list[Quote]:
                     "outcome": "error",
                 },
             )
+            await outreach.fail(ctx, order.id, supplier.id, repr(result))
             continue
         stored = await _absorb(ctx, order, supplier, result)
         if stored is not None:
@@ -173,12 +180,14 @@ async def _ask(ctx: AppContext, order: Order, supplier: Supplier) -> QuoteOutcom
     request = QuoteRequest(
         order_id=order.id,
         supplier=supplier,
-        items=tuple(await _items_for(ctx, order)),
+        items=tuple(await items_for(ctx, order)),
         delivery_location=order.delivery_location,
         urgency=order.urgency,
         deadline=ctx.clock.deadline(timeout_s),
         correlation_id=f"{order.id}:{supplier.id}",
     )
+
+    await outreach.mark_contacted(ctx, order.id, supplier.id)
 
     agent = ctx.agent_for(supplier.channel)
     wall_budget = ctx.clock.wall_seconds(timeout_s) + TIMEOUT_GRACE_S
@@ -202,7 +211,7 @@ async def _ask(ctx: AppContext, order: Order, supplier: Supplier) -> QuoteOutcom
         )
 
 
-async def _items_for(ctx: AppContext, order: Order) -> list[RequestedItem]:
+async def items_for(ctx: AppContext, order: Order) -> list[RequestedItem]:
     """What to ask for, with the SKU when the match is trustworthy.
 
     Below the confidence threshold the SKU is withheld deliberately: a supplier
@@ -257,6 +266,14 @@ async def _absorb(
             received_at=outcome.quote.received_at,
         )
         await ctx.repos.quotes.add(quote)
+        await outreach.mark_extracted(ctx, order.id, supplier.id, quote.id)
+    elif isinstance(outcome, Declined):
+        await outreach.discard(ctx, order.id, supplier.id, "il fornitore ha declinato")
+    elif isinstance(outcome, NeedsCallback):
+        # They answered, they just have not priced it yet. Left non-terminal on
+        # purpose: the follow-up policy chases this one rather than the round
+        # writing them off for being slower than the SLA.
+        await outreach.mark_replied(ctx, order.id, supplier.id)
 
     await record(
         ctx,

@@ -57,7 +57,7 @@ class SimulatorMessaging:
 
     async def send(self, message: OutboundMessage) -> DeliveryReceipt:
         now = self._clock.now()
-        opened = self._last_inbound.get(message.professional_id, now)
+        opened = self._last_inbound.get(message.counterparty_id, now)
         return DeliveryReceipt(
             external_message_id=f"SM{next(self._sequence):08d}",
             accepted=True,

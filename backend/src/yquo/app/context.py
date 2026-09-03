@@ -24,6 +24,8 @@ if TYPE_CHECKING:
     from uuid import UUID
 
     from yquo.app.events import EventBus, EventKind
+    from yquo.app.resilience import Guard
+    from yquo.config.providers import ProviderConfig
     from yquo.config.settings import Settings
     from yquo.domain.enums import Channel
     from yquo.domain.values import Actor
@@ -44,6 +46,13 @@ class AppContext:
     repos: Repositories
     clock: Clock
     settings: Settings
+    #: Credentials, model names, follow-up timings and the cost ceiling. Separate
+    #: from `settings`, which is business policy: a person tuning a nudge
+    #: interval should not have to read past an auth token to reach it.
+    providers: ProviderConfig
+    #: Per-provider rate limit and circuit breaker. Stateful and per world, so a
+    #: provider going down in one demo session does not stop another's.
+    guards: dict[str, Guard]
     messaging: MessagingPort
     interpreter: InterpreterPort
     #: Quote extraction and comparison. Separate from `interpreter` because they

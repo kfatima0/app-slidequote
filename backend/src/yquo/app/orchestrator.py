@@ -20,7 +20,7 @@ import asyncio
 import contextlib
 from typing import TYPE_CHECKING, Any
 
-from yquo.app import canvassing, confirmation, execution, intake
+from yquo.app import canvassing, confirmation, execution, intake, outreach, supplier_reply
 from yquo.domain.enums import OrderStatus
 
 if TYPE_CHECKING:
@@ -96,6 +96,31 @@ class Orchestrator:
         if updated.status is OrderStatus.CONFIRMED:
             return await execution.execute(self._ctx, updated)
         return updated
+
+    async def chase(self, order: Order, *, max_passes: int = 24) -> int:
+        """The follow-up job: nudge, then call, then close, until nobody is left.
+
+        A loop of discrete passes rather than one long-lived coroutine per
+        supplier. A pass is a unit of work that can be scheduled, asserted on and
+        stopped between iterations, and six coroutines each sleeping four hours
+        is six things to cancel cleanly at shutdown instead of one.
+
+        `max_passes` is a backstop, not a policy. The policy is in
+        `providers.outreach` and closes every supplier within a day; this only
+        guarantees the loop ends if a bug leaves a contact permanently due.
+        """
+        passes = 0
+        while passes < max_passes:
+            if await supplier_reply.outstanding(self._ctx, order.id) == 0:
+                break
+            acted = await outreach.follow_up(self._ctx, order)
+            passes += 1
+            if not acted:
+                # Nothing was due. Sleep until the earliest thing might be,
+                # rather than spinning: the clock decides how long that is in
+                # wall time, so an accelerated demo still moves.
+                await self._ctx.clock.sleep(self._ctx.providers.outreach.nudge_after_s)
+        return passes
 
     async def _quote_and_offer(self, order: Order) -> Order:
         """Canvass, rank, offer, and start the confirmation clock."""

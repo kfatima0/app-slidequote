@@ -14,10 +14,10 @@ modelled now rather than bolted on later, because two of them change behaviour:
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Protocol
+from typing import Protocol, Self
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 # Runtime imports: these annotate Pydantic model fields.
 from yquo.domain.enums import ProfessionalChannel
@@ -25,9 +25,16 @@ from yquo.domain.values import ValueObject
 
 
 class OutboundMessage(ValueObject):
-    """A message to a professional. Body text always comes from yquo.locale."""
+    """A message we send. Body text always comes from yquo.locale.
 
-    professional_id: UUID
+    Addressed to exactly one of a professional or a supplier. Both fields are
+    optional individually and one is required together, because who the
+    recipient is decides which sender number is used, which consent record
+    governs the send, and which template is approved for it -- and a message
+    addressed to neither has nowhere for any of those to come from.
+    """
+
+    professional_id: UUID | None = None
     to_phone_e164: str
     body: str = Field(min_length=1)
     order_id: UUID | None = None
@@ -42,6 +49,26 @@ class OutboundMessage(ValueObject):
     supplier_id: UUID | None = None
     #: Threaded through every message, call and model invocation for one job.
     request_id: str = ""
+
+    @property
+    def counterparty_id(self) -> UUID:
+        """Who is on the other end of this conversation.
+
+        The 24-hour window and the consent record are both per conversation, and
+        a conversation with a supplier is a different one from a conversation
+        with a professional. Keying either on the professional alone would let a
+        supplier reply reopen a window that belongs to somebody else.
+        """
+        found = self.professional_id or self.supplier_id
+        if found is None:  # pragma: no cover - the validator below forbids it
+            raise ValueError("message has no recipient")
+        return found
+
+    @model_validator(mode="after")
+    def _has_exactly_one_recipient(self) -> Self:
+        if (self.professional_id is None) == (self.supplier_id is None):
+            raise ValueError("a message goes to a professional or a supplier, not both")
+        return self
 
 
 class InboundMedia(ValueObject):

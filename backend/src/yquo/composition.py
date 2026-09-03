@@ -25,6 +25,7 @@ from yquo.adapters.mock.voice import MockVoice
 from yquo.app.context import AppContext
 from yquo.app.events import EventBus
 from yquo.app.orchestrator import Orchestrator
+from yquo.app.resilience import build_guards
 from yquo.config.providers import ProviderConfig
 from yquo.config.settings import Settings
 from yquo.seed import SeedData, install, load_seed
@@ -199,6 +200,8 @@ async def build(
         repos=repos,
         clock=clock,
         settings=settings,
+        providers=providers,
+        guards=build_guards(clock, providers.outreach),
         messaging=build_messaging(settings, clock, repos, providers),
         interpreter=build_interpreter(settings, providers),
         ai=build_ai(settings, clock, repos, providers),

@@ -140,7 +140,7 @@ class TwilioMessaging:
         return DeliveryReceipt(
             external_message_id=sent.sid,
             accepted=True,
-            session_expires_at=await self._window_expiry(message.professional_id, now),
+            session_expires_at=await self._window_expiry(message.counterparty_id, now),
         )
 
     def _create(self, message: OutboundMessage, template: Template | None) -> Any:
@@ -187,7 +187,7 @@ class TwilioMessaging:
         if message.template_name:
             return self._templates.get(message.template_name)
 
-        if await self.is_session_open(message.professional_id):
+        if await self.is_session_open(message.counterparty_id):
             return None
 
         # Outside the window with no template named. Nothing can lawfully be
@@ -196,19 +196,19 @@ class TwilioMessaging:
 
     # -- session window ------------------------------------------------------ #
 
-    async def is_session_open(self, professional_id: UUID) -> bool:
+    async def is_session_open(self, counterparty_id: UUID) -> bool:
         """True while free-form messages are still allowed.
 
         Derived from the last inbound message we stored, which is the same thing
         Meta measures. No inbound at all means the window was never opened.
         """
-        latest = await self._repos.conversations.latest_inbound(professional_id)
+        latest = await self._repos.conversations.latest_inbound(counterparty_id)
         if latest is None:
             return False
         return (self._clock.now() - latest.created_at).total_seconds() < SESSION_WINDOW_S
 
-    async def _window_expiry(self, professional_id: UUID, now: datetime) -> datetime | None:
-        latest = await self._repos.conversations.latest_inbound(professional_id)
+    async def _window_expiry(self, counterparty_id: UUID, now: datetime) -> datetime | None:
+        latest = await self._repos.conversations.latest_inbound(counterparty_id)
         if latest is None:
             return None
         expiry: datetime = latest.created_at + timedelta(seconds=SESSION_WINDOW_S)
