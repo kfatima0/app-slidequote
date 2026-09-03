@@ -2,13 +2,13 @@
 
 Three endpoints and one websocket, and between them they are the whole call:
 
-* `POST /voice/outbound` — the TwiML for a call we placed. Connects the line to
+* `POST /voice/outbound` -- the TwiML for a call we placed. Connects the line to
   the relay socket below.
-* `POST /voice/inbound` — the TwiML for somebody calling our number.
-* `POST /voice/status` — how the call ended, according to Twilio. This is where
+* `POST /voice/inbound` -- the TwiML for somebody calling our number.
+* `POST /voice/status` -- how the call ended, according to Twilio. This is where
   no-answer, busy, voicemail and duration come from; none of them are inferred
   from what was said.
-* `WS /voice/relay` — ConversationRelay. Twilio does the speech recognition and
+* `WS /voice/relay` -- ConversationRelay. Twilio does the speech recognition and
   the synthesis and sends us text; we send text back.
 
 The signed-and-idempotent rules from twilio_webhooks apply here too, and the

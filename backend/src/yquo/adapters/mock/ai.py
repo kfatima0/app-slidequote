@@ -40,8 +40,19 @@ SOURCE_CONFIDENCE: dict[ExtractionSource, float] = {
 
 MODEL_NAME = "mock-extractor-v1"
 
-#: "1.234,50" or "1234.50" preceded by a euro sign or followed by "euro".
-_AMOUNT = re.compile(r"(?:€\s*)?(\d{1,3}(?:\.\d{3})*,\d{2}|\d+[.,]\d{2}|\d+)(?:\s*euro)?")
+#: A figure that is plausibly money: it has cents, or it is marked as euro.
+#:
+#: The bare-integer case is deliberately gone. A supplier's reply is full of long
+#: digit runs that are not prices -- 38068 is Rovereto's postcode, 2026 is the
+#: year on the document, +390461887420 is the phone number -- and reading any of
+#: them as a total produces a quote that is wrong by four orders of magnitude and
+#: looks entirely normal on screen. The real extractor has a model to tell them
+#: apart. This has punctuation.
+_AMOUNT = re.compile(
+    r"(?:€\s*(\d{1,3}(?:\.\d{3})*(?:,\d{2})?|\d+(?:[.,]\d{2})?)"
+    r"|(\d{1,3}(?:\.\d{3})*,\d{2}|\d+[.,]\d{2})(?:\s*euro)?"
+    r"|(\d{1,3}(?:\.\d{3})*|\d+)\s*euro)"
+)
 _DAYS = re.compile(r"(\d+)\s*(?:giorni|gg)\b", re.IGNORECASE)
 
 
@@ -99,12 +110,11 @@ class MockAI:
         Falls back to leaving prices absent rather than inventing them, so the
         offline path exercises the same missing-data handling the real one does.
         """
-        amounts = [
-            to_money(_normalise(match)) for match in _AMOUNT.findall(request.text or "")
-        ]
+        amounts = _amounts(request.text or "")
+        totals = _line_totals(amounts, len(request.requested_items))
         lines: list[ExtractedLine] = []
         for index, item in enumerate(request.requested_items):
-            price = amounts[index] if index < len(amounts) else None
+            price = totals[index] if index < len(totals) else None
             unit_price: Confidenced[Any] = (
                 Confidenced(value=to_money(price / item.quantity), confidence=confidence)
                 if price is not None and item.quantity
@@ -131,7 +141,7 @@ class MockAI:
         The largest is a decent heuristic for a quote's total, which is normally
         the biggest number on the page.
         """
-        amounts = [to_money(_normalise(m)) for m in _AMOUNT.findall(text)]
+        amounts = _amounts(text)
         if amounts:
             return max(amounts)
         summed = sum(
@@ -181,6 +191,45 @@ class MockAI:
             "Trascrizione simulata: il fornitore conferma disponibilita e prezzo.",
             Usage(model=MODEL_NAME),
         )
+
+
+#: The largest figure this mock will read as a price. A supplier's reply is full
+#: of long digit runs that are not money -- phone numbers, VAT codes, product
+#: codes -- and a naive parser turns one of them into a quote for four hundred
+#: billion euro. The real extractor has a model to tell them apart; this has a
+#: ceiling.
+MAX_PLAUSIBLE = Decimal("1000000")
+
+
+def _amounts(text: str) -> list[Decimal]:
+    """Every figure in the text that could plausibly be a price, in order."""
+    found: list[Decimal] = []
+    for groups in _AMOUNT.findall(text):
+        raw = next((g for g in groups if g), "")
+        if not raw:
+            continue
+        try:
+            value = to_money(Decimal(_normalise(raw)))
+        except (ArithmeticError, ValueError):
+            continue
+        if Decimal(0) < value <= MAX_PLAUSIBLE:
+            found.append(value)
+    return found
+
+
+def _line_totals(amounts: list[Decimal], count: int) -> list[Decimal]:
+    """Which of the figures are line totals rather than unit prices.
+
+    The largest `count` of them, put back in the order they appeared. A quote
+    lists a unit price beside every line total, so taking them in document order
+    alone would price every line at its per-metre rate -- a hundredfold error in
+    the direction nobody notices, because the number looks reasonable.
+    """
+    if count == 0 or not amounts:
+        return []
+    largest = set(sorted(amounts, reverse=True)[:count])
+    ordered = [a for a in amounts if a in largest]
+    return ordered[:count]
 
 
 def _normalise(raw: str) -> str:

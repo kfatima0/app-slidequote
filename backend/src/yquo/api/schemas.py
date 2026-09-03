@@ -143,3 +143,134 @@ class DemoStateOut(Wire):
     professionals: tuple[ProfessionalOut, ...]
     suppliers: tuple[SupplierOut, ...]
     open_orders: int
+
+
+# --------------------------------------------------------------------------- #
+# Collection: what each supplier is doing, and what came back
+#
+# The Ops Console's real job. Everything above answers "what is this order?";
+# these answer "why is it taking so long, and can I trust the numbers?", which is
+# what an operator actually opens the screen to find out.
+# --------------------------------------------------------------------------- #
+
+
+class TimelineEntryOut(Wire):
+    """One thing that happened with one supplier, in order."""
+
+    at: datetime
+    kind: str
+    detail: str
+    #: The artifact, message or call this can be opened from. The answer to
+    #: "where did this come from?" has to be one click away or nobody checks.
+    reference: str | None = None
+
+
+class SupplierProgressOut(Wire):
+    """One supplier's lane: state, attempts, what was said, what was quoted."""
+
+    supplier_id: UUID
+    supplier_name: str
+    channel: str
+    state: str
+    attempts: int
+    last_contacted_at: datetime | None
+    next_action_at: datetime | None
+    failure_reason: str | None
+    quote_id: UUID | None
+    timeline: tuple[TimelineEntryOut, ...]
+
+
+class ConfidencedOut(Wire):
+    """A value with how sure the model was, and where it read it.
+
+    `missing_reason` is populated exactly when `value` is null. The UI shows the
+    reason rather than a blank, because "not stated in the quote" and "we could
+    not read it" mean different things to whoever has to decide.
+    """
+
+    value: str | None
+    confidence: float
+    evidence: str | None
+    missing_reason: str | None
+
+
+class ExtractedQuoteOut(Wire):
+    id: UUID
+    supplier_id: UUID
+    supplier_name: str
+    source: str
+    source_reference: str
+    total_incl_vat: ConfidencedOut
+    lead_time_days: ConfidencedOut
+    vat_rate_pct: ConfidencedOut
+    payment_terms: ConfidencedOut
+    missing_items: tuple[str, ...]
+    inclusions: tuple[str, ...]
+    exclusions: tuple[str, ...]
+    overall_confidence: float
+    needs_manual_review: bool
+    review_reasons: tuple[str, ...]
+    price_outlier: bool
+    model: str
+    created_at: datetime
+
+
+class ComparisonOut(Wire):
+    """The quotes side by side. Assembled from numbers, never generated."""
+
+    cheapest_id: UUID | None
+    fastest_id: UUID | None
+    universally_missing: tuple[str, ...]
+    summary_it: str
+    quotes: tuple[ExtractedQuoteOut, ...]
+
+
+class SpendLineOut(Wire):
+    kind: str
+    detail: str
+    amount_eur: str
+    at: datetime
+
+
+class SpendOut(Wire):
+    spent_eur: str
+    ceiling_eur: str
+    remaining_eur: str
+    exhausted: bool
+    lines: tuple[SpendLineOut, ...]
+
+
+class CollectionOut(Wire):
+    """Everything the console shows for one order's collection phase."""
+
+    order_id: UUID
+    outstanding: int
+    state_counts: dict[str, int]
+    suppliers: tuple[SupplierProgressOut, ...]
+    comparison: ComparisonOut
+    spend: SpendOut
+
+
+class OverrideIn(Wire):
+    """An operator correcting a field the model got wrong.
+
+    Only the fields a person can reasonably check off the source document. The
+    correction is stored at full confidence with the operator named as its
+    evidence, so the audit trail says a human decided rather than pretending the
+    model got it right.
+    """
+
+    total_incl_vat: str | None = None
+    lead_time_days: int | None = None
+    note: str = Field(default="", max_length=500)
+
+
+class TakeoverIn(Wire):
+    """An operator taking one supplier off the automation.
+
+    Ends that supplier's contact so nothing further is sent to them
+    automatically. Deliberately per supplier rather than per order: the usual
+    reason is one awkward conversation, not a broken job.
+    """
+
+    reason: str = Field(min_length=1, max_length=300)

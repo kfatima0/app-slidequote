@@ -25,6 +25,7 @@ import type {
 } from "../lib/api";
 import { STATUS_LABEL, api, euro } from "../lib/api";
 import { Canvassing, type DispatchRow } from "./Canvassing";
+import { Collection } from "./Collection";
 import { Chat } from "./Chat";
 import { Evidence } from "./Evidence";
 import { Pipeline } from "./Pipeline";
@@ -44,6 +45,11 @@ export function Console() {
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Bumped whenever anything about this order changes. The collection panel
+  // fetches its own payload rather than being handed one, because it is
+  // assembled server-side from five sources and threading it through here would
+  // put half a screen's joins in this component.
+  const [revision, setRevision] = useState(0);
 
   // Read inside the stream callback, which is registered once and would
   // otherwise capture the first render's values forever.
@@ -161,6 +167,7 @@ export function Console() {
 
       // Anything that changes stored state: re-read rather than guess.
       if (event.order_id) {
+        setRevision((n) => n + 1);
         await refreshOrders();
         if (!orderRef.current || orderRef.current === event.order_id) {
           await openOrder(event.order_id);
@@ -334,6 +341,12 @@ export function Console() {
           <Canvassing
             order={order}
             dispatches={dispatches}
+            onOpenArtifact={(reference) => void api.artifact(reference).then(setArtifact)}
+          />
+
+          <Collection
+            orderId={order?.id ?? null}
+            revision={revision}
             onOpenArtifact={(reference) => void api.artifact(reference).then(setArtifact)}
           />
 

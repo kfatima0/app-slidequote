@@ -331,3 +331,86 @@ def _quote(
         request_id="req-1",
         created_at=START,
     )
+
+
+class TestNumbersThatAreNotPrices:
+    """The bug that produced a quote for thirty-eight thousand euro.
+
+    A supplier's reply is full of long digit runs: the delivery postcode, the
+    year on the document, the phone number in a call header. Reading one of them
+    as a total is wrong by four orders of magnitude and looks entirely normal on
+    screen, which is the worst combination available.
+    """
+
+    @pytest.mark.parametrize(
+        "noise",
+        [
+            "Consegna a Rovereto 38068",
+            "Data: 02/03/2026",
+            "Numero: +390461887420",
+            "Account: YQ-3391",
+            "SKU CAV-FROR-3G2.5 quantita 100 m",
+        ],
+    )
+    async def test_a_bare_number_is_not_read_as_money(self, noise: str) -> None:
+        ai = MockAI(ManualClock(START))
+        result = await ai.extract_quote(
+            ExtractionRequest(
+                order_id=uuid4(),
+                supplier_id=uuid4(),
+                source=ExtractionSource.WHATSAPP_TEXT,
+                source_reference="ref",
+                text=f"{noise}\nTotale € 176,00",
+                request_id="req-1",
+            )
+        )
+        assert result.quote.total_incl_vat.value == Decimal("176.00")
+
+    @pytest.mark.parametrize(
+        "written,expected",
+        [
+            ("Totale 176,00", "176.00"),
+            ("Totale € 176,00", "176.00"),
+            ("Totale 176 euro", "176.00"),
+            ("Totale € 1.234,50", "1234.50"),
+        ],
+    )
+    async def test_money_is_recognised_however_it_is_written(
+        self, written: str, expected: str
+    ) -> None:
+        ai = MockAI(ManualClock(START))
+        result = await ai.extract_quote(
+            ExtractionRequest(
+                order_id=uuid4(),
+                supplier_id=uuid4(),
+                source=ExtractionSource.WHATSAPP_TEXT,
+                source_reference="ref",
+                text=written,
+                request_id="req-1",
+            )
+        )
+        assert result.quote.total_incl_vat.value == Decimal(expected)
+
+    async def test_a_line_is_priced_at_its_total_not_its_unit_rate(self) -> None:
+        """A quote lists both. Taking the first is a hundredfold error."""
+        order_id = uuid4()
+        item = OrderItem(
+            order_id=order_id,
+            material_description="Cavo FROR 3G2,5",
+            quantity=Decimal(100),
+            unit=Unit.METRO,
+        )
+        ai = MockAI(ManualClock(START))
+        result = await ai.extract_quote(
+            ExtractionRequest(
+                order_id=order_id,
+                supplier_id=uuid4(),
+                source=ExtractionSource.WHATSAPP_TEXT,
+                source_reference="ref",
+                text="CAV-FROR-3G2.5  Cavo FROR 3G2,5  100 m  1,88  188,00",
+                requested_items=(item,),
+                request_id="req-1",
+            )
+        )
+        assert result.quote.lines[0].line_total.value == Decimal("188.00")
+        assert result.quote.lines[0].unit_price.value == Decimal("1.88")

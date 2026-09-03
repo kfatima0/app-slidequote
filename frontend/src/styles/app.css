@@ -332,3 +332,119 @@ body {
 .items li:last-child { border-bottom: none; }
 .items .q { font-variant-numeric: tabular-nums; color: var(--ink-soft); min-width: 62px; }
 .items .match { margin-left: auto; font-size: 11.5px; color: var(--ink-faint); }
+
+/* ---------- collection: per-supplier progress and the comparison ----------
+   Colour carries meaning here rather than decoration. Confidence and contact
+   state are the two things an operator scans for, so they are the two things
+   that are coloured; everything else stays grey so those read at a glance. */
+
+.states {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 10px 15px; border-bottom: 1px solid var(--line);
+}
+.state-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px;
+  background: #eef2f6; color: var(--ink-soft); white-space: nowrap;
+}
+.state-chip b { font-weight: 700; }
+.state-chip.awaiting_reply, .state-chip.contacted { background: #fff4e0; color: var(--warn); }
+.state-chip.quote_extracted, .state-chip.replied { background: #e6f6ec; color: var(--good); }
+.state-chip.error { background: #fdecea; color: var(--bad); }
+.state-chip.discarded { background: #f2f4f7; color: var(--ink-faint); }
+
+.lane { border-bottom: 1px solid var(--line); }
+.lane-head {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 10px 15px; background: none; border: 0; cursor: pointer;
+  font: inherit; font-size: 13.5px; text-align: left; color: inherit;
+}
+.lane-head:hover { background: #fafbfc; }
+.lane-head .spacer { flex: 1; }
+.lane-head .name { font-weight: 600; }
+.lane-head .chan { font-size: 15px; }
+.lane-head .attempts { font-size: 11.5px; color: var(--ink-faint); }
+.lane-head .caret { color: var(--ink-faint); font-size: 11px; }
+.lane .failure { padding: 0 15px 9px 51px; font-size: 12px; color: var(--bad); }
+.lane-body { padding: 0 15px 13px 51px; }
+
+.timeline { list-style: none; margin: 0; padding: 0; }
+.timeline li {
+  display: flex; align-items: baseline; gap: 9px;
+  padding: 4px 0; font-size: 12.5px; color: var(--ink-soft);
+}
+.timeline time {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+  min-width: 42px;
+}
+
+.takeover { display: flex; gap: 8px; margin-top: 10px; }
+.takeover input {
+  flex: 1; padding: 6px 9px; font: inherit; font-size: 12.5px;
+  border: 1px solid var(--line); border-radius: 7px;
+}
+.takeover button, .editor button {
+  padding: 6px 11px; font: inherit; font-size: 12.5px; font-weight: 600;
+  border: 1px solid var(--line); border-radius: 7px;
+  background: var(--panel); color: var(--ink); cursor: pointer;
+}
+.takeover button:disabled, .editor button:disabled { opacity: 0.45; cursor: default; }
+
+.link {
+  background: none; border: 0; padding: 0; font: inherit; font-size: 12px;
+  color: var(--accent); cursor: pointer; text-decoration: underline;
+}
+
+.comparison { padding: 13px 15px; border-bottom: 1px solid var(--line); }
+.comparison .summary {
+  margin: 0 0 11px; padding: 10px 12px; border-radius: 8px;
+  background: #f7f9fb; border: 1px solid var(--line);
+  font: inherit; font-size: 12.5px; white-space: pre-wrap;
+}
+.comparison table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.comparison th {
+  text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.03em; color: var(--ink-faint);
+  padding: 5px 8px 5px 0; border-bottom: 1px solid var(--line);
+}
+.comparison td { padding: 8px 8px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.comparison tr.review td { background: #fffdf6; }
+.comparison tr.reasons td { padding-top: 0; border-bottom: 1px solid var(--line); }
+
+.badge {
+  display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px;
+  font-size: 10.5px; font-weight: 650;
+}
+.badge.best { background: #e6f6ec; color: var(--good); }
+.badge.fast { background: #e8f0fe; color: var(--accent); }
+.badge.outlier { background: #fdecea; color: var(--bad); }
+
+/* Confidence. Deliberately visible: a price read at 62% should not look like a
+   price read at 95%, because the whole risk of this product is a wrong number
+   arriving looking exactly like a right one. */
+.conf { font-weight: 650; font-family: var(--mono); font-size: 11.5px; }
+.conf.high, .value.high { color: var(--ink); }
+.conf.mid, .value.mid { color: var(--warn); }
+.conf.low, .value.low { color: var(--bad); }
+.value.mid, .value.low { text-decoration: underline dotted; text-underline-offset: 3px; }
+
+/* A missing value states why it is missing. A blank cell reads as zero, and a
+   zero price is a number somebody might act on. */
+.absent { color: var(--ink-faint); font-style: italic; font-size: 11.5px; }
+
+.warn { color: var(--bad); font-size: 12px; margin: 3px 0; }
+.why { color: var(--warn); font-size: 11.5px; margin: 2px 0; }
+
+.editor td { background: #f7f9fb; }
+.editor label {
+  display: inline-flex; align-items: center; gap: 6px; margin-right: 10px;
+  font-size: 12px; color: var(--ink-soft);
+}
+.editor input {
+  width: 100px; padding: 5px 8px; font: inherit; font-size: 12.5px;
+  border: 1px solid var(--line); border-radius: 7px;
+}
+.editor .hint { margin-left: 10px; font-size: 11.5px; color: var(--ink-faint); }
+
+.spend { padding: 10px 15px; font-size: 12px; color: var(--ink-soft); }
+.spend.exhausted { color: var(--bad); font-weight: 600; }

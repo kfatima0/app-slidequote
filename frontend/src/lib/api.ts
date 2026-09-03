@@ -194,6 +194,141 @@ async function get<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      [SESSION_HEADER]: session(),
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(`POST ${path} -> ${response.status}`);
+  }
+  return (await response.json()) as T;
+}
+
+
+// ---------------------------------------------------------------------------
+// Collection: what each supplier is doing, and how much to trust what came back
+// ---------------------------------------------------------------------------
+
+export type ContactState =
+  | "to_contact"
+  | "contacted"
+  | "awaiting_reply"
+  | "replied"
+  | "quote_extracted"
+  | "discarded"
+  | "error";
+
+export interface TimelineEntry {
+  at: string;
+  kind: string;
+  detail: string;
+  reference: string | null;
+}
+
+export interface SupplierProgress {
+  supplier_id: string;
+  supplier_name: string;
+  channel: Channel;
+  state: ContactState;
+  attempts: number;
+  last_contacted_at: string | null;
+  next_action_at: string | null;
+  failure_reason: string | null;
+  quote_id: string | null;
+  timeline: TimelineEntry[];
+}
+
+/**
+ * A value the model read, with how sure it was.
+ *
+ * `value` is null exactly when `missing_reason` is set. Render the reason, not a
+ * blank: "not stated in the quote" and "we could not read it" mean different
+ * things to whoever has to decide.
+ */
+export interface Confidenced {
+  value: string | null;
+  confidence: number;
+  evidence: string | null;
+  missing_reason: string | null;
+}
+
+export interface ExtractedQuote {
+  id: string;
+  supplier_id: string;
+  supplier_name: string;
+  source: string;
+  source_reference: string;
+  total_incl_vat: Confidenced;
+  lead_time_days: Confidenced;
+  vat_rate_pct: Confidenced;
+  payment_terms: Confidenced;
+  missing_items: string[];
+  inclusions: string[];
+  exclusions: string[];
+  overall_confidence: number;
+  needs_manual_review: boolean;
+  review_reasons: string[];
+  price_outlier: boolean;
+  model: string;
+  created_at: string;
+}
+
+export interface Comparison {
+  cheapest_id: string | null;
+  fastest_id: string | null;
+  universally_missing: string[];
+  summary_it: string;
+  quotes: ExtractedQuote[];
+}
+
+export interface SpendLine {
+  kind: string;
+  detail: string;
+  amount_eur: string;
+  at: string;
+}
+
+export interface Spend {
+  spent_eur: string;
+  ceiling_eur: string;
+  remaining_eur: string;
+  exhausted: boolean;
+  lines: SpendLine[];
+}
+
+export interface Collection {
+  order_id: string;
+  outstanding: number;
+  state_counts: Record<ContactState, number>;
+  suppliers: SupplierProgress[];
+  comparison: Comparison;
+  spend: Spend;
+}
+
+export const CONTACT_STATE_LABEL: Record<ContactState, string> = {
+  to_contact: "Da contattare",
+  contacted: "Contattato",
+  awaiting_reply: "In attesa",
+  replied: "Ha risposto",
+  quote_extracted: "Preventivo letto",
+  discarded: "Chiuso",
+  error: "Errore",
+};
+
+/**
+ * Below this a field goes to a person rather than being acted on.
+ *
+ * Mirrors DEFAULT_CONFIDENCE_THRESHOLD in the backend. The backend decides; this
+ * only decides what colour to paint it, so a drift here is cosmetic rather than
+ * a second opinion about whether a price is trustworthy.
+ */
+export const CONFIDENCE_THRESHOLD = 0.75;
+
 export const api = {
   base: BASE,
 
@@ -204,6 +339,27 @@ export const api = {
     get<Message[]>(`/api/conversations/${professionalId}`),
   artifact: (reference: string) =>
     get<Artifact>(`/api/artifacts/${encodeURIComponent(reference)}`),
+  collection: (orderId: string) =>
+    get<Collection>(`/api/orders/${orderId}/collection`),
+
+  /**
+   * Correct a field the model read wrong.
+   *
+   * Returns the whole collection rather than the quote, because a corrected
+   * total changes which quote is cheapest and can clear a review flag: the
+   * screen has to redraw more than the row that was edited.
+   */
+  override: (
+    quoteId: string,
+    body: { total_incl_vat?: string; lead_time_days?: number; note?: string },
+  ) => post<Collection>(`/api/quotes/${quoteId}/override`, body),
+
+  /** Take one supplier off the automation. A person has it from here. */
+  takeover: (orderId: string, supplierId: string, reason: string) =>
+    post<Collection>(
+      `/api/orders/${orderId}/suppliers/${supplierId}/takeover`,
+      { reason },
+    ),
 
   async send(
     professionalId: string,

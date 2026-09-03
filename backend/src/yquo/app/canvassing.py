@@ -21,12 +21,12 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
-from yquo.app import outreach
+from yquo.app import outreach, supplier_reply
 from yquo.app.context import record
 from yquo.app.events import Event
 from yquo.app.intake import send
 from yquo.domain.entities import Quote
-from yquo.domain.enums import EscalationReason, OrderStatus
+from yquo.domain.enums import Channel, EscalationReason, ExtractionSource, OrderStatus
 from yquo.domain.state_machine import escalate, transition
 from yquo.domain.values import Actor
 from yquo.locale import it
@@ -266,7 +266,22 @@ async def _absorb(
             received_at=outcome.quote.received_at,
         )
         await ctx.repos.quotes.add(quote)
-        await outreach.mark_extracted(ctx, order.id, supplier.id, quote.id)
+        # The agent's own artifact -- the portal page, the email, the call
+        # transcript -- goes through the same extraction a supplier's WhatsApp
+        # reply does. Ranking runs on the Quote either way; this is what puts a
+        # per-field confidence and a missing-items list next to it, and it is the
+        # reason the mock path and the real one converge instead of being two
+        # systems that happen to share a screen.
+        extracted = await supplier_reply.handle(
+            ctx,
+            supplier,
+            order,
+            source=_source_for(supplier),
+            source_reference=outcome.artifact.reference,
+            text=outcome.artifact.content,
+        )
+        if extracted is None:
+            await outreach.mark_extracted(ctx, order.id, supplier.id, quote.id)
     elif isinstance(outcome, Declined):
         await outreach.discard(ctx, order.id, supplier.id, "il fornitore ha declinato")
     elif isinstance(outcome, NeedsCallback):
@@ -325,3 +340,19 @@ def _status_event(ctx: AppContext, order: Order, *, previous: str) -> Event:
         professional_id=order.professional_id,
         data={"from": previous, "to": order.status.value},
     )
+
+
+def _source_for(supplier: Supplier) -> ExtractionSource:
+    """Which kind of document this supplier's reply is.
+
+    The extractor reads a call transcript differently from a portal page, and
+    reports lower confidence on one than the other. Passing the channel through
+    rather than defaulting to text is what makes that difference visible.
+    """
+    match supplier.channel:
+        case Channel.VOICE:
+            return ExtractionSource.CALL_TRANSCRIPT
+        case Channel.EMAIL:
+            return ExtractionSource.EMAIL
+        case _:
+            return ExtractionSource.WHATSAPP_TEXT

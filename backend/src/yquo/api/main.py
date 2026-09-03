@@ -24,15 +24,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from yquo.api import mappers, twilio_voice, twilio_webhooks
+from yquo.api import collection, mappers, twilio_voice, twilio_webhooks
 from yquo.api.schemas import (
     ArtifactOut,
     AuditEntryOut,
+    CollectionOut,
     DemoStateOut,
     MessageOut,
     OrderDetailOut,
     OrderSummaryOut,
+    OverrideIn,
     SendMessageIn,
+    TakeoverIn,
 )
 from yquo.api.sessions import SessionRegistry
 from yquo.app.orchestrator import Orchestrator
@@ -276,6 +279,44 @@ async def artifact(reference: str, orch: Orch) -> ArtifactOut:
 async def order_audit(order_id: UUID, orch: Orch) -> list[AuditEntryOut]:
     records = await orch.ctx.repos.audit.list_by_order(order_id)
     return [mappers.audit_out(r) for r in records]
+
+
+@app.get("/api/orders/{order_id}/collection", response_model=CollectionOut)
+async def order_collection(order_id: UUID, orch: Orch) -> CollectionOut:
+    """Per-supplier progress, the comparison, and what the job has cost.
+
+    One payload rather than five, because a console correlating five would
+    eventually draw one supplier's timeline against another's quote.
+    """
+    return await collection.view(orch.ctx, order_id)
+
+
+@app.post("/api/quotes/{quote_id}/override", response_model=CollectionOut)
+async def override_quote(quote_id: UUID, payload: OverrideIn, orch: Orch) -> CollectionOut:
+    """An operator corrects a field the model read wrong.
+
+    Returns the whole collection view rather than the quote, so the screen
+    reflects the knock-on effects at once: a corrected total changes which quote
+    is cheapest and can clear a review flag.
+    """
+    quote = await collection.override(orch.ctx, quote_id, payload)
+    if quote is None:
+        raise HTTPException(status_code=404, detail="quote not found")
+    return await collection.view(orch.ctx, quote.order_id)
+
+
+@app.post(
+    "/api/orders/{order_id}/suppliers/{supplier_id}/takeover",
+    response_model=CollectionOut,
+)
+async def takeover_supplier(
+    order_id: UUID, supplier_id: UUID, payload: TakeoverIn, orch: Orch
+) -> CollectionOut:
+    """A person takes one supplier off the automation."""
+    contact = await collection.take_over(orch.ctx, order_id, supplier_id, payload)
+    if contact is None:
+        raise HTTPException(status_code=404, detail="supplier not on this order")
+    return await collection.view(orch.ctx, order_id)
 
 
 @app.get("/api/stream")

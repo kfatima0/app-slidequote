@@ -13,30 +13,38 @@ places the order.
 Suppliers do not adapt to us. We adapt to them. If a supplier only takes phone orders, an
 agent calls them and speaks Italian. The professional never knows the difference.
 
-## Status — mock-first phase
+## Status
 
-Everything external is mocked: no Twilio, no OpenAI, no Supabase, no supplier, no SDI.
-**Zero network calls leave the machine.** The domain logic is real production code; only
-the adapters at the edges are fake, so making it real is a composition change rather than
-a rewrite. See [MIGRATION_PLAN.md](MIGRATION_PLAN.md).
+Every edge has two implementations: a mock and a real one, chosen by
+configuration. **With no environment variables set, nothing leaves the machine**
+and the whole test suite runs with no account anywhere. Set a Twilio or an
+OpenAI key and that one edge becomes real; nothing else changes.
+
+Persistence is still in memory behind repository Protocols. See
+[MIGRATION_PLAN.md](MIGRATION_PLAN.md) for what that swap looks like, and
+[DECISIONS.md](DECISIONS.md) for why the provider integrations are shaped the way
+they are.
 
 | | |
 |---|---|
 | ✅ Domain models | One typed, immutable class per target table |
-| ✅ Repository ports | Ten async Protocols; the in-memory → Supabase swap is mechanical |
-| ✅ Draft Supabase schema | Full SQL, reviewed not executed |
-| ✅ Migration plan | Every mock has a feature flag and an owner file |
+| ✅ Repository ports | Seventeen async Protocols; the in-memory to Supabase swap is mechanical |
 | ✅ Order lifecycle | State machine, ranking, Italian confirmation parsing |
 | ✅ Persistence & clock | In-memory repositories, append-only audit, accelerated time |
-| ⬜ Mock adapters | Interpreter, catalog matcher, three supplier agents |
-| ⬜ Orchestration | Intake → parallel canvassing → confirmation → placement |
-| ✅ Demo frontend | WhatsApp simulator, live canvassing, agent evidence |
-| ⬜ Seed scenarios | Six reproducible demo scenarios |
+| ✅ Mock adapters | Interpreter, catalog matcher, three supplier agents, extractor, call agent |
+| ✅ Orchestration | Intake, parallel canvassing, follow-up, confirmation, placement |
+| ✅ WhatsApp (Twilio) | Signed idempotent webhooks, templates, consent, media |
+| ✅ Voice (Twilio) | ConversationRelay, inbound and outbound, recording disclosure |
+| ✅ Quote extraction (OpenAI) | Structured outputs, per-field confidence, missing items |
+| ✅ Resilience & cost | Backoff, rate limits, circuit breaker, per-order ceiling |
+| ✅ Demo frontend | WhatsApp simulator, live canvassing, comparison, operator override |
+| ⬜ Supabase persistence | Schema drafted, adapter not built |
 
 ## Running it
 
 Needs [uv](https://docs.astral.sh/uv/) and [Node](https://nodejs.org/) 20+. Python
-3.12 is fetched and pinned by uv automatically.
+3.12 is fetched and pinned by uv automatically. No credentials are needed: copy
+[.env.example](.env.example) only when you want to turn a real provider on.
 
 ### First time
 
@@ -79,7 +87,21 @@ for debugging but not for showing anyone.
 ./check.sh      # macOS and Linux
 ```
 
-Lint, types and the full test suite. Run it before committing.
+Lint, types and the full test suite. Run it before committing. No network and no
+credentials: the suite runs entirely against the mock adapters.
+
+### Browser checks
+
+Some failures only exist in a browser. A React island that never hydrates and a
+Pydantic model whose field types are import-time invisible both build cleanly,
+typecheck cleanly, and render nothing. The scripts in `frontend/e2e/` drive a
+real page and report anything it complains about:
+
+```bash
+./api.sh                                 # or serve the built page on :8080
+node frontend/e2e/smoke.mjs              # the ordinary happy path
+node frontend/e2e/collection.mjs         # supplier lanes, timeline, takeover
+```
 
 ### Why scripts rather than a Makefile
 

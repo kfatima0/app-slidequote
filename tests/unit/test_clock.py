@@ -64,7 +64,12 @@ class TestAcceleratedClock:
         wall_elapsed = time.monotonic() - wall_before
 
         assert wall_elapsed < 0.5
-        assert clock.elapsed_since(START) >= timedelta(seconds=55)
+        # Loose on purpose. At 1000x a 60-second wait is 60ms of wall time, and
+        # Windows event-loop timers fire up to ~16ms early -- which the clock
+        # faithfully reports back as 16 seconds of missing simulated time. The
+        # claim under test is that acceleration happened at all, not that the
+        # OS scheduler is precise to the millisecond.
+        assert clock.elapsed_since(START) >= timedelta(seconds=40)
 
     def test_a_non_positive_factor_is_rejected(self) -> None:
         with pytest.raises(ValueError, match="must be positive"):
