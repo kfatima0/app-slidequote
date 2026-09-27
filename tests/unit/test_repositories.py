@@ -13,16 +13,16 @@ from uuid import uuid4
 
 import pytest
 
-from yquo.adapters.memory import InMemoryRepositories
-from yquo.domain.entities import AuditRecord, Order, Placement
-from yquo.domain.enums import Channel, OrderStatus
-from yquo.domain.errors import (
+from slidequote.adapters.memory import InMemoryRepositories
+from slidequote.domain.entities import AuditRecord, Order, Placement
+from slidequote.domain.enums import Channel, OrderStatus
+from slidequote.domain.errors import (
     AuditLogImmutableError,
     ConcurrencyError,
     DuplicateDedupeKeyError,
 )
-from yquo.domain.values import Actor
-from yquo.ports.repositories import AuditLogRepository, Repositories
+from slidequote.domain.values import Actor
+from slidequote.ports.repositories import AuditLogRepository, Repositories
 
 OrderFactory = Callable[..., Order]
 

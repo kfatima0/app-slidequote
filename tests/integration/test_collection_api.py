@@ -20,7 +20,7 @@ import httpx
 import pytest
 from asgi_lifespan import LifespanManager
 
-from yquo.api.main import app
+from slidequote.api.main import app
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 async def client(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[httpx.AsyncClient]:
     # A canvassing round takes minutes of simulated time. Accelerated hard so the
     # suite waits for the real orchestration rather than for a clock.
-    monkeypatch.setenv("YQUO_DEMO__TIME_ACCELERATION", "600")
+    monkeypatch.setenv("SLIDEQUOTE_DEMO__TIME_ACCELERATION", "600")
     async with LifespanManager(app), httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://testserver"
     ) as http:
@@ -299,9 +299,9 @@ async def _with_a_quote(
     """
     from uuid import UUID
 
-    from yquo.api.main import app as live
-    from yquo.app import outreach, supplier_reply
-    from yquo.domain.enums import ExtractionSource
+    from slidequote.api.main import app as live
+    from slidequote.app import outreach, supplier_reply
+    from slidequote.domain.enums import ExtractionSource
 
     orch = live.state.sessions.peek("shared")
     assert orch is not None

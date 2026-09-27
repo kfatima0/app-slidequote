@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from yquo.domain.confirmation import (
+from slidequote.domain.confirmation import (
     ConfirmationIntent,
     is_explicit_confirmation,
     parse_confirmation,

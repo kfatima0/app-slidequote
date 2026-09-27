@@ -11,7 +11,7 @@ from decimal import Decimal
 
 import pytest
 
-from yquo.locale import it
+from slidequote.locale import it
 
 
 class TestEuroFormatting:

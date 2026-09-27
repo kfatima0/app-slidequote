@@ -13,12 +13,12 @@ from uuid import uuid4
 
 import pytest
 
-from yquo.adapters.clock import ManualClock
-from yquo.adapters.memory import InMemoryRepositories
-from yquo.adapters.mock.agents import build_agents
-from yquo.domain.entities import Product, Supplier
-from yquo.domain.enums import Channel, MockPlacementFailure, MockStrategy, Unit, Urgency
-from yquo.ports.supplier_agent import (
+from slidequote.adapters.clock import ManualClock
+from slidequote.adapters.memory import InMemoryRepositories
+from slidequote.adapters.mock.agents import build_agents
+from slidequote.domain.entities import Product, Supplier
+from slidequote.domain.enums import Channel, MockPlacementFailure, MockStrategy, Unit, Urgency
+from slidequote.ports.supplier_agent import (
     Declined,
     NeedsCallback,
     NoResponse,
@@ -28,7 +28,7 @@ from yquo.ports.supplier_agent import (
     RequestedItem,
     SupplierAgent,
 )
-from yquo.seed import hydrate
+from slidequote.seed import hydrate
 
 START = datetime(2026, 3, 2, 9, 30, tzinfo=UTC)
 

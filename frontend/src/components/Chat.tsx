@@ -2,7 +2,7 @@
  * The WhatsApp simulator. The star of the demo.
  *
  * Point of view is the professional's, so their own messages sit right in green
- * and YQuo's replies sit left in white, exactly as they would on a real phone.
+ * and SlideQuote's replies sit left in white, exactly as they would on a real phone.
  * That framing is the pitch: the product is a phone number, and this is what the
  * whole thing looks like to the person paying for it.
  */
@@ -84,7 +84,7 @@ export function Chat({ professional, messages, busy, onSend }: Props) {
       <div className="phone-header">
         <div className="avatar">{initials}</div>
         <div>
-          <div className="who">YQuo</div>
+          <div className="who">SlideQuote</div>
           <div className="sub">
             {professional ? professional.phone_e164 : "nessun professionista"}
           </div>

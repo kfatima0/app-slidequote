@@ -11,8 +11,8 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from yquo.adapters.clock import AcceleratedClock, ManualClock, SystemClock
-from yquo.ports.clock import Clock
+from slidequote.adapters.clock import AcceleratedClock, ManualClock, SystemClock
+from slidequote.ports.clock import Clock
 
 START = datetime(2026, 3, 2, 9, 30, tzinfo=UTC)
 

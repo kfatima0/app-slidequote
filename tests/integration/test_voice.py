@@ -19,13 +19,13 @@ import pytest
 from fastapi.testclient import TestClient
 from twilio.request_validator import RequestValidator
 
-from yquo.adapters.clock import ManualClock
-from yquo.adapters.memory import InMemoryRepositories
-from yquo.adapters.mock.call_agent import MockCallAgent
-from yquo.adapters.mock.voice import SCRIPTS, MockVoice
-from yquo.adapters.twilio.calls import REGISTRY
-from yquo.domain.enums import CallOutcome
-from yquo.ports.voice import CallBrief, CallRequest, CallTurn
+from slidequote.adapters.clock import ManualClock
+from slidequote.adapters.memory import InMemoryRepositories
+from slidequote.adapters.mock.call_agent import MockCallAgent
+from slidequote.adapters.mock.voice import SCRIPTS, MockVoice
+from slidequote.adapters.twilio.calls import REGISTRY
+from slidequote.domain.enums import CallOutcome
+from slidequote.ports.voice import CallBrief, CallRequest, CallTurn
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -58,7 +58,7 @@ def mock_voice() -> tuple[MockVoice, InMemoryRepositories]:
 class TestScriptsAreDeterministic:
     def test_each_script_is_reachable(self) -> None:
         """A demo that can only ever show one outcome is not showing an outcome."""
-        from yquo.adapters.mock.voice import _script_for
+        from slidequote.adapters.mock.voice import _script_for
 
         reached = {
             _script_for(number)
@@ -72,7 +72,7 @@ class TestScriptsAreDeterministic:
         assert reached == set(range(len(SCRIPTS)))
 
     def test_the_same_number_behaves_the_same_way_twice(self) -> None:
-        from yquo.adapters.mock.voice import _script_for
+        from slidequote.adapters.mock.voice import _script_for
 
         assert _script_for(PRICE_ON_THE_PHONE) == _script_for(PRICE_ON_THE_PHONE)
 
@@ -136,7 +136,7 @@ class TestRecordingRequiresDisclosure:
 
     async def test_a_recording_cannot_be_stored_without_it(self) -> None:
         """Enforced by the domain, not by whoever remembers to check."""
-        from yquo.domain.comms import CallSession
+        from slidequote.domain.comms import CallSession
 
         with pytest.raises(ValueError, match="disclosure"):
             CallSession(
@@ -184,7 +184,7 @@ class TestAgentSaysOnlyWhatItWasGiven:
 
 
 AUTH_TOKEN = "test_auth_token_not_a_real_secret"
-PUBLIC_BASE = "https://yquo.test"
+PUBLIC_BASE = "https://slidequote.test"
 
 
 @pytest.fixture
@@ -195,10 +195,10 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     because the URL reconstruction is the part most likely to drift and the part
     a faked check would never catch.
     """
-    monkeypatch.setenv("YQUO_TWILIO__AUTH_TOKEN", AUTH_TOKEN)
-    monkeypatch.setenv("YQUO_TWILIO__PUBLIC_BASE_URL", PUBLIC_BASE)
-    monkeypatch.setenv("YQUO_TWILIO__VALIDATE_SIGNATURES", "true")
-    from yquo.api.main import app
+    monkeypatch.setenv("SLIDEQUOTE_TWILIO__AUTH_TOKEN", AUTH_TOKEN)
+    monkeypatch.setenv("SLIDEQUOTE_TWILIO__PUBLIC_BASE_URL", PUBLIC_BASE)
+    monkeypatch.setenv("SLIDEQUOTE_TWILIO__VALIDATE_SIGNATURES", "true")
+    from slidequote.api.main import app
 
     with TestClient(app) as test_client:
         yield test_client
@@ -369,7 +369,7 @@ class TestStatusCallback:
     def test_the_first_resolution_wins(self, client: TestClient) -> None:
         """A late 'completed' must not overwrite 'they asked for a person'."""
         pending = reserve("tok-race")
-        from yquo.ports.voice import CallResult
+        from slidequote.ports.voice import CallResult
 
         REGISTRY.resolve(
             pending,

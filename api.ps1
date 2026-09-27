@@ -35,10 +35,10 @@ function Find-Uv {
 #
 # To demo the expiry deliberately (scenario 5), drop these back to 1800 and 900
 # and simply do not answer.
-$env:YQUO_POLICY__CONFIRMATION_WINDOW_S = "7200"
-$env:YQUO_POLICY__REMINDER_AFTER_S = "3600"
+$env:SLIDEQUOTE_POLICY__CONFIRMATION_WINDOW_S = "7200"
+$env:SLIDEQUOTE_POLICY__REMINDER_AFTER_S = "3600"
 
 $uv = Find-Uv
-Write-Host "YQuo demo backend -> http://127.0.0.1:8000/docs" -ForegroundColor Cyan
+Write-Host "SlideQuote demo backend -> http://127.0.0.1:8000/docs" -ForegroundColor Cyan
 Write-Host "  time x60 | 2 minutes to confirm a quote" -ForegroundColor DarkGray
-& $uv run --project "$repo\backend" uvicorn yquo.api.main:app --reload --port 8000
+& $uv run --project "$repo\backend" uvicorn slidequote.api.main:app --reload --port 8000

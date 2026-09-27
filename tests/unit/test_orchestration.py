@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from yquo.adapters.clock import ManualClock
-from yquo.app.resilience import (
+from slidequote.adapters.clock import ManualClock
+from slidequote.app.resilience import (
     CircuitBreaker,
     CircuitOpenError,
     Guard,
@@ -22,10 +22,10 @@ from yquo.app.resilience import (
     backoff_delay,
     build_guards,
 )
-from yquo.config.providers import OutreachSettings
+from slidequote.config.providers import OutreachSettings
 
 if TYPE_CHECKING:
-    from yquo.ports.clock import Clock
+    from slidequote.ports.clock import Clock
 
 START = datetime(2026, 3, 2, 9, 0, tzinfo=UTC)
 
@@ -171,12 +171,12 @@ class TestFollowUpPolicy:
 class TestCeiling:
     def test_the_ceiling_is_low_enough_to_catch_a_loop(self) -> None:
         """A real canvassing round is cents. Two euro means something is looping."""
-        from yquo.config.providers import CostSettings
+        from slidequote.config.providers import CostSettings
 
         assert CostSettings().ceiling_per_order_eur <= Decimal("5.00")
 
     def test_there_is_a_reserve_so_started_work_can_finish(self) -> None:
-        from yquo.config.providers import CostSettings
+        from slidequote.config.providers import CostSettings
 
         cost = CostSettings()
         assert 0 < cost.reserve_eur < cost.ceiling_per_order_eur

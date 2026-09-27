@@ -1,0 +1,1 @@
+"""SlideQuote backend."""

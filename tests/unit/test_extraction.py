@@ -19,9 +19,9 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from yquo.adapters.clock import ManualClock
-from yquo.adapters.mock.ai import MockAI
-from yquo.adapters.openai.extraction import (
+from slidequote.adapters.clock import ManualClock
+from slidequote.adapters.mock.ai import MockAI
+from slidequote.adapters.openai.extraction import (
     _absent_datetime,
     _money,
     _percent,
@@ -29,17 +29,17 @@ from yquo.adapters.openai.extraction import (
     _unit,
     load_prompt,
 )
-from yquo.adapters.openai.schemas import WireConfidenced
-from yquo.domain.comparison import OUTLIER_FACTOR, compare
-from yquo.domain.entities import OrderItem
-from yquo.domain.enums import ExtractionSource, Unit
-from yquo.domain.extraction import (
+from slidequote.adapters.openai.schemas import WireConfidenced
+from slidequote.domain.comparison import OUTLIER_FACTOR, compare
+from slidequote.domain.entities import OrderItem
+from slidequote.domain.enums import ExtractionSource, Unit
+from slidequote.domain.extraction import (
     DEFAULT_CONFIDENCE_THRESHOLD,
     Confidenced,
     ExtractedLine,
     ExtractedQuote,
 )
-from yquo.ports.ai import ExtractionRequest
+from slidequote.ports.ai import ExtractionRequest
 
 START = datetime(2026, 3, 2, 9, 30, tzinfo=UTC)
 

@@ -37,14 +37,14 @@ COPY backend/ ./backend/
 RUN uv sync --project backend --no-dev --frozen
 
 COPY --from=frontend /build/dist ./frontend/dist
-ENV YQUO_FRONTEND_DIST=/app/frontend/dist
+ENV SLIDEQUOTE_FRONTEND_DIST=/app/frontend/dist
 
 # Demo pacing, matching api.ps1 and api.sh. One acceleration factor cannot serve
 # both halves of the flow: canvassing wants to be quick enough to watch, the
 # confirmation window wants to be slow enough to talk over. At 60x the real
 # 30-minute window would be 30 seconds, expiring the order mid-explanation.
-ENV YQUO_POLICY__CONFIRMATION_WINDOW_S=7200 \
-    YQUO_POLICY__REMINDER_AFTER_S=3600
+ENV SLIDEQUOTE_POLICY__CONFIRMATION_WINDOW_S=7200 \
+    SLIDEQUOTE_POLICY__REMINDER_AFTER_S=3600
 
 # Hosts inject the port they want listened on; 8000 is the local default.
 ENV PORT=8000
@@ -57,4 +57,4 @@ ENV PYTHONUNBUFFERED=1
 # so a second worker would serve some requests from a world that does not have
 # the visitor's order in it. Horizontal scaling waits for the Supabase swap
 # (MIGRATION_PLAN.md §2), which is where that state stops being in-process.
-CMD ["sh", "-c", "uv run --project backend --no-dev uvicorn yquo.api.main:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["sh", "-c", "uv run --project backend --no-dev uvicorn slidequote.api.main:app --host 0.0.0.0 --port ${PORT}"]

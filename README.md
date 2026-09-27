@@ -1,11 +1,11 @@
-# YQuo
+# SlideQuote
 
 Italian tradespeople  electricians, plumbers, *caldaisti*  lose hours every week
 phoning suppliers for material prices, waiting on callbacks, and re-keying the same
 order into different portals.
 
-YQuo removes that work. **The entire product surface is a phone number.** A professional
-sends a WhatsApp message describing what they need; YQuo interprets it, canvasses several
+SlideQuote removes that work. **The entire product surface is a phone number.** A professional
+sends a WhatsApp message describing what they need; SlideQuote interprets it, canvasses several
 suppliers *in parallel*  each over whatever channel that supplier actually uses, web shop,
 phone or email  ranks the quotes that come back, sends the best one for confirmation, and
 places the order.
@@ -117,7 +117,7 @@ avoids the problem entirely.
 If you would rather not use the scripts at all, they wrap exactly this:
 
 ```bash
-uv run --project backend uvicorn yquo.api.main:app --reload --port 8000
+uv run --project backend uvicorn slidequote.api.main:app --reload --port 8000
 uv run --project backend ruff check backend/src tests
 uv run --project backend pytest -q
 cd backend && uv run mypy
@@ -134,7 +134,7 @@ worse than not sending the link, so isolation exists before deployment rather
 than after it.
 
 Each browser generates an opaque id, keeps it in local storage, and sends it as
-`X-YQuo-Session` (as a `session` query parameter on the event stream, which
+`X-SlideQuote-Session` (as a `session` query parameter on the event stream, which
 cannot carry headers). The server keeps one orchestrator per id: its own
 repositories, clock, agents and event bus. A request without a valid id falls
 back to one shared world, which keeps `curl` and `/docs` usable.
@@ -152,7 +152,7 @@ crawler sending random ids cannot exhaust memory.
 ## Layout
 
 ```
-backend/src/yquo/
+backend/src/slidequote/
   domain/     pure business logic — no I/O, no clock, no adapters
   ports/      interfaces the domain depends on
   adapters/   every implementation of a port; the only layer touching the outside

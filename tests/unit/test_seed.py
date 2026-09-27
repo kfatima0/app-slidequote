@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from yquo.adapters.clock import ManualClock
-from yquo.adapters.memory import InMemoryRepositories
-from yquo.domain.enums import Channel, MockStrategy
-from yquo.seed import hydrate, load_seed
+from slidequote.adapters.clock import ManualClock
+from slidequote.adapters.memory import InMemoryRepositories
+from slidequote.domain.enums import Channel, MockStrategy
+from slidequote.seed import hydrate, load_seed
 
 START = datetime(2026, 3, 2, 9, 30, tzinfo=UTC)
 

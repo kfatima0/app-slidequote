@@ -13,15 +13,15 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from yquo.composition import build
-from yquo.config.settings import Settings
-from yquo.domain.enums import Channel, Direction, OrderStatus, ProfessionalChannel
-from yquo.ports.messaging import InboundMessage
+from slidequote.composition import build
+from slidequote.config.settings import Settings
+from slidequote.domain.enums import Channel, Direction, OrderStatus, ProfessionalChannel
+from slidequote.ports.messaging import InboundMessage
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
-    from yquo.app.orchestrator import Orchestrator
+    from slidequote.app.orchestrator import Orchestrator
 
 START = datetime(2026, 3, 2, 9, 30, tzinfo=UTC)
 

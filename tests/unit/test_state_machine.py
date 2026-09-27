@@ -8,11 +8,11 @@ from uuid import uuid4
 
 import pytest
 
-from yquo.domain.entities import Order
-from yquo.domain.enums import TERMINAL_ORDER_STATUSES, EscalationReason, OrderStatus
-from yquo.domain.errors import InvalidTransitionError
-from yquo.domain.state_machine import ALLOWED, escalate, is_terminal, transition
-from yquo.domain.values import Actor
+from slidequote.domain.entities import Order
+from slidequote.domain.enums import TERMINAL_ORDER_STATUSES, EscalationReason, OrderStatus
+from slidequote.domain.errors import InvalidTransitionError
+from slidequote.domain.state_machine import ALLOWED, escalate, is_terminal, transition
+from slidequote.domain.values import Actor
 
 OrderFactory = Callable[..., Order]
 

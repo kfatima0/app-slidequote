@@ -237,7 +237,7 @@ export function Console() {
       <div className="topbar">
         <div className="topbar-inner">
         <div className="brand">
-          YQuo <span>demo harness</span>
+          SlideQuote <span>demo harness</span>
         </div>
         <span
           className={`pill ${connected ? "live" : "dead"}`}

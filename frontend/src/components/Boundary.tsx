@@ -27,7 +27,7 @@ export class Boundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error("YQuo console crashed", error, info.componentStack);
+    console.error("SlideQuote console crashed", error, info.componentStack);
   }
 
   render(): ReactNode {

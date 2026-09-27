@@ -36,10 +36,10 @@ find_uv() {
 #
 # To demo the expiry deliberately (scenario 5), drop these back to 1800 and 900
 # and simply do not answer.
-export YQUO_POLICY__CONFIRMATION_WINDOW_S=7200
-export YQUO_POLICY__REMINDER_AFTER_S=3600
+export SLIDEQUOTE_POLICY__CONFIRMATION_WINDOW_S=7200
+export SLIDEQUOTE_POLICY__REMINDER_AFTER_S=3600
 
 uv="$(find_uv)"
-echo "YQuo demo backend -> http://127.0.0.1:8000/docs"
+echo "SlideQuote demo backend -> http://127.0.0.1:8000/docs"
 echo "  time x60 | 2 minutes to confirm a quote"
-exec "$uv" run --project "$repo/backend" uvicorn yquo.api.main:app --reload --port 8000
+exec "$uv" run --project "$repo/backend" uvicorn slidequote.api.main:app --reload --port 8000

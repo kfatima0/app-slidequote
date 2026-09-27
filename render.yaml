@@ -2,7 +2,7 @@
 # See DEPLOY.md for the walkthrough and for why a single instance is deliberate.
 services:
   - type: web
-    name: yquo-demo
+    name: slidequote-demo
     runtime: docker
     dockerfilePath: ./Dockerfile
     # The demo keeps every visitor's world in this process's memory, so a second
@@ -16,7 +16,7 @@ services:
     envVars:
       # Demo pacing, matching api.ps1 and api.sh: two minutes on the clock to
       # confirm a quote, so a presenter can talk over it.
-      - key: YQUO_POLICY__CONFIRMATION_WINDOW_S
+      - key: SLIDEQUOTE_POLICY__CONFIRMATION_WINDOW_S
         value: "7200"
-      - key: YQUO_POLICY__REMINDER_AFTER_S
+      - key: SLIDEQUOTE_POLICY__REMINDER_AFTER_S
         value: "3600"

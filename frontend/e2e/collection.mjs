@@ -7,7 +7,7 @@
 // sequence, and asserts the panel is actually on the page with numbers in it.
 import { chromium } from "playwright";
 
-const URL = process.env.YQUO_URL ?? "http://127.0.0.1:8080/";
+const URL = process.env.SLIDEQUOTE_URL ?? "http://127.0.0.1:8080/";
 
 const browser = await chromium.launch();
 const page = await browser.newPage();

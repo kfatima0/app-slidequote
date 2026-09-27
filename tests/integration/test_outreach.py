@@ -15,16 +15,16 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from yquo.app import canvassing, outreach, spend, supplier_reply
-from yquo.composition import build
-from yquo.config.settings import Settings
-from yquo.domain.enums import ContactState, ExtractionSource, ProfessionalChannel
-from yquo.ports.ai import Usage
-from yquo.ports.messaging import InboundMessage
+from slidequote.app import canvassing, outreach, spend, supplier_reply
+from slidequote.composition import build
+from slidequote.config.settings import Settings
+from slidequote.domain.enums import ContactState, ExtractionSource, ProfessionalChannel
+from slidequote.ports.ai import Usage
+from slidequote.ports.messaging import InboundMessage
 
 if TYPE_CHECKING:
-    from yquo.app.orchestrator import Orchestrator
-    from yquo.domain.entities import Order, Supplier
+    from slidequote.app.orchestrator import Orchestrator
+    from slidequote.domain.entities import Order, Supplier
 
 START = datetime(2026, 3, 2, 9, 0, tzinfo=UTC)
 

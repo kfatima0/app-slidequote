@@ -19,7 +19,7 @@ import httpx
 import pytest
 from asgi_lifespan import LifespanManager
 
-from yquo.api.main import app
+from slidequote.api.main import app
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -37,7 +37,7 @@ async def client(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[httpx.AsyncCl
     # in single-digit seconds while staying well under the ceiling where
     # execution overhead starts eating a supplier's SLA (see the integration
     # fixture in test_happy_path.py).
-    monkeypatch.setenv("YQUO_DEMO__TIME_ACCELERATION", "300")
+    monkeypatch.setenv("SLIDEQUOTE_DEMO__TIME_ACCELERATION", "300")
     async with LifespanManager(app), httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://testserver"
     ) as http:

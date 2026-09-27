@@ -14,9 +14,9 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from yquo.domain.entities import Order, Quote, QuoteLineItem, StructuredRequest
-from yquo.domain.enums import Channel, Unit
-from yquo.domain.values import Address
+from slidequote.domain.entities import Order, Quote, QuoteLineItem, StructuredRequest
+from slidequote.domain.enums import Channel, Unit
+from slidequote.domain.values import Address
 
 NOW = datetime(2026, 3, 2, 9, 30, tzinfo=UTC)
 

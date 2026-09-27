@@ -1,7 +1,7 @@
 /**
  * The backend, typed.
  *
- * These types mirror `yquo.api.schemas`. They are hand-written rather than
+ * These types mirror `slidequote.api.schemas`. They are hand-written rather than
  * generated because the surface is small and the duplication is honest: if the
  * backend changes shape, this file should fail to compile.
  *
@@ -36,7 +36,7 @@ const BASE =
  * cookies need HTTPS even locally. Not a secret either: there is nothing to
  * protect, every world is fabricated data.
  */
-const SESSION_KEY = "yquo.session";
+const SESSION_KEY = "slidequote.session";
 
 function newSessionId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -69,7 +69,7 @@ export function session(): string {
   return sessionId;
 }
 
-const SESSION_HEADER = "X-YQuo-Session";
+const SESSION_HEADER = "X-SlideQuote-Session";
 
 export type Direction = "inbound" | "outbound";
 export type Channel = "ecommerce" | "voice" | "email";

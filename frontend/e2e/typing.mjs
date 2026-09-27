@@ -1,7 +1,7 @@
 // Type messages into the composer the way a person does, one key at a time.
 import { chromium } from "playwright";
 
-const URL = process.env.YQUO_URL ?? "http://127.0.0.1:4321/";
+const URL = process.env.SLIDEQUOTE_URL ?? "http://127.0.0.1:4321/";
 const MESSAGES = [
   "Ciao, mi servono 100 metri di cavo FROR 3x2.5 e 4 magnetotermici 16A, consegna a Rovereto",
   "Servono 2 plafoniere LED 36W e 1 rotolo di striscia LED 24V",

@@ -21,8 +21,8 @@ drives the whole demo through it — request, parallel canvassing, transcript,
 confirmation, placement, reset.
 
 ```bash
-docker build -t yquo .
-docker run --rm -p 8080:8000 yquo     # then open http://127.0.0.1:8080
+docker build -t slidequote .
+docker run --rm -p 8080:8000 slidequote     # then open http://127.0.0.1:8080
 ```
 
 ## Choosing a host
@@ -53,10 +53,10 @@ already on, the free tier is fine because you can warm it yourself first.
 than you filling in a form.
 
 1. Push to GitHub (Render deploys from the repo).
-2. render.com -> **New** -> **Blueprint** -> pick the `YQuo` repo.
+2. render.com -> **New** -> **Blueprint** -> pick the `SlideQuote` repo.
 3. It reads `render.yaml` and offers one web service. Confirm.
 4. First build takes a few minutes. You get a URL like
-   `https://yquo-demo.onrender.com`.
+   `https://slidequote-demo.onrender.com`.
 
 To avoid sleeping, upgrade that service to a paid instance in its settings. No
 other change is needed.

@@ -9,8 +9,8 @@ from uuid import UUID, uuid4
 import pytest
 from pydantic import ValidationError
 
-from yquo.domain.entities import Quote
-from yquo.domain.ranking import (
+from slidequote.domain.entities import Quote
+from slidequote.domain.ranking import (
     RankingWeights,
     apply_scores,
     best_quote,

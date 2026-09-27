@@ -18,23 +18,23 @@ import pytest
 from asgi_lifespan import LifespanManager
 from twilio.request_validator import RequestValidator
 
-from yquo.api.main import app
+from slidequote.api.main import app
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
 AUTH_TOKEN = "test_auth_token_not_a_real_secret"
-PUBLIC_BASE = "https://yquo.test"
+PUBLIC_BASE = "https://slidequote.test"
 
 
 @pytest.fixture
 async def client(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[httpx.AsyncClient]:
     # Real credentials are absent, so the messaging adapter stays mocked; only
     # the webhook signature path is exercised for real.
-    monkeypatch.setenv("YQUO_TWILIO__AUTH_TOKEN", AUTH_TOKEN)
-    monkeypatch.setenv("YQUO_TWILIO__PUBLIC_BASE_URL", PUBLIC_BASE)
-    monkeypatch.setenv("YQUO_TWILIO__VALIDATE_SIGNATURES", "true")
-    monkeypatch.setenv("YQUO_DEMO__TIME_ACCELERATION", "300")
+    monkeypatch.setenv("SLIDEQUOTE_TWILIO__AUTH_TOKEN", AUTH_TOKEN)
+    monkeypatch.setenv("SLIDEQUOTE_TWILIO__PUBLIC_BASE_URL", PUBLIC_BASE)
+    monkeypatch.setenv("SLIDEQUOTE_TWILIO__VALIDATE_SIGNATURES", "true")
+    monkeypatch.setenv("SLIDEQUOTE_DEMO__TIME_ACCELERATION", "300")
     async with LifespanManager(app), httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://testserver"
     ) as http:

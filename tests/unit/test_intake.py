@@ -12,14 +12,14 @@ from decimal import Decimal
 
 import pytest
 
-from yquo.adapters.clock import ManualClock
-from yquo.adapters.memory import InMemoryRepositories
-from yquo.adapters.mock.catalog_matcher import KeywordCatalogMatcher, stem
-from yquo.adapters.mock.interpreter import RuleBasedInterpreter
-from yquo.domain.entities import Professional
-from yquo.domain.enums import ProfessionalChannel, Unit, Urgency
-from yquo.ports.interpreter import Interpretation, InterpretationRequest
-from yquo.seed import hydrate
+from slidequote.adapters.clock import ManualClock
+from slidequote.adapters.memory import InMemoryRepositories
+from slidequote.adapters.mock.catalog_matcher import KeywordCatalogMatcher, stem
+from slidequote.adapters.mock.interpreter import RuleBasedInterpreter
+from slidequote.domain.entities import Professional
+from slidequote.domain.enums import ProfessionalChannel, Unit, Urgency
+from slidequote.ports.interpreter import Interpretation, InterpretationRequest
+from slidequote.seed import hydrate
 
 START = datetime(2026, 3, 2, 9, 30, tzinfo=UTC)
 

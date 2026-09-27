@@ -1,4 +1,4 @@
-# YQuo — Mock-First MVP Build Prompt (v2)
+# SlideQuote — Mock-First MVP Build Prompt (v2)
 
 > Paste this into a coding agent (Claude Code, Cursor, etc.) at the root of an empty repo.
 > Everything below is the brief. Read all of it before writing any code.
@@ -7,7 +7,7 @@
 
 ## 0. Your role and your two deliverables
 
-You are the founding engineer on **YQuo**. This phase has exactly two deliverables, built in parallel:
+You are the founding engineer on **SlideQuote**. This phase has exactly two deliverables, built in parallel:
 
 **Deliverable A — a fully working demo MVP where every external dependency is mocked.**
 Every flow, every screen, every state transition works end-to-end — against mock data and mock integrations only. Zero real network calls. No Twilio, no OpenAI, no Supabase, no supplier websites, no SDI. The demo must be runnable locally with one command and be convincing enough to show to pilot customers and investors.
@@ -21,13 +21,13 @@ Ask clarifying questions before implementing anything ambiguous. Do not invent s
 
 ---
 
-## 1. What YQuo is
+## 1. What SlideQuote is
 
 Italian tradespeople — electricians, plumbers, boiler technicians (*caldaisti*), small construction firms — lose hours every week phoning suppliers for material prices, waiting on callbacks, and re-keying the same order into different portals.
 
-YQuo removes that work. **The entire product surface is a phone number.** No app, no dashboard, no login for the professional.
+SlideQuote removes that work. **The entire product surface is a phone number.** No app, no dashboard, no login for the professional.
 
-A professional sends a WhatsApp message or makes a call describing what they need. YQuo then:
+A professional sends a WhatsApp message or makes a call describing what they need. SlideQuote then:
 
 1. Interprets the request into a structured order
 2. Canvasses multiple suppliers **in parallel**, each over whatever channel that supplier actually uses — e-commerce, phone, or email
@@ -223,7 +223,7 @@ Above a configurable order-value threshold, route to `manual_review` before exec
 
 ### Flow 6 — Quoting → invoicing
 
-From a YQuo order (or materials entered in the Ops Console), generate an itemized **client** quote: materials + labor hours + the professional's markup rule. Render it as a real PDF (local generation is allowed — it's not an external call) and "deliver" it on the simulated WhatsApp thread.
+From a SlideQuote order (or materials entered in the Ops Console), generate an itemized **client** quote: materials + labor hours + the professional's markup rule. Render it as a real PDF (local generation is allowed — it's not an external call) and "deliver" it on the simulated WhatsApp thread.
 
 - **Client declines** → archive, no invoice.
 - **Client accepts** → generate the invoice; "submit" through the mock `CompliancePort` (SDI), behind a feature flag, returning a fake transmission ID and status.
@@ -258,7 +258,7 @@ Astro with React islands, TypeScript. Real-time via SSE (or WebSocket) from Fast
 
 Required views:
 
-1. **WhatsApp simulator** — a chat UI styled like WhatsApp, professional's point of view. Type a request in Italian, receive YQuo's replies, confirm with "ok". Also a "simulate voice call" input that submits a transcription. This is the star of the demo.
+1. **WhatsApp simulator** — a chat UI styled like WhatsApp, professional's point of view. Type a request in Italian, receive SlideQuote's replies, confirm with "ok". Also a "simulate voice call" input that submits a transcription. This is the star of the demo.
 2. **Live order pipeline** — every order as it moves through the state machine, updating in real time.
 3. **Canvassing view** — for an order in `quoting`: the parallel supplier agents, each with channel icon, countdown, and status; quotes appearing as they land. Click into any agent to see its artifact: the full Italian mock call transcript, the mock email thread, or the mock checkout snapshot.
 4. **Quote & ranking view** — normalized quotes side by side with their ranking scores and the winning one highlighted.
@@ -305,7 +305,7 @@ A living document in the repo root. Required content:
 - Every state transition and agent action lands in the append-only audit log.
 - All timeouts, weights, thresholds and the time-acceleration factor in config.
 - Italian-facing strings in a single locale module, not inline.
-- `README.md` with: one-command (or two) local startup, and a **written demo script** — the exact click-by-click walkthrough of scenario 1 and scenario 6 for showing YQuo to a stranger.
+- `README.md` with: one-command (or two) local startup, and a **written demo script** — the exact click-by-click walkthrough of scenario 1 and scenario 6 for showing SlideQuote to a stranger.
 - `MIGRATION_PLAN.md` complete per §11 and consistent with the code as built.
 
 ---

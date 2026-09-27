@@ -13,7 +13,7 @@ from typing import ClassVar
 
 import pytest
 
-SRC = Path(__file__).resolve().parents[1] / "backend" / "src" / "yquo"
+SRC = Path(__file__).resolve().parents[1] / "backend" / "src" / "slidequote"
 
 #: Layers that must not know an adapter exists.
 PURE_LAYERS = ("domain", "app", "ports")
@@ -50,7 +50,7 @@ class TestDependencyDirection:
 
     @pytest.mark.parametrize("path", _python_files(*PURE_LAYERS), ids=_relative)
     def test_no_adapter_imports(self, path: Path) -> None:
-        offenders = [i for i in _imports(path) if i.startswith("yquo.adapters")]
+        offenders = [i for i in _imports(path) if i.startswith("slidequote.adapters")]
         assert not offenders, (
             f"{_relative(path)} imports {offenders}. Swapping a mock for a real "
             f"integration must be a change to composition.py, not to business logic."
@@ -59,9 +59,8 @@ class TestDependencyDirection:
     @pytest.mark.parametrize("path", _python_files("domain"), ids=_relative)
     def test_the_domain_imports_nothing_from_the_app_layer(self, path: Path) -> None:
         """Dependencies point inward. The domain is the centre."""
-        offenders = [
-            i for i in _imports(path) if i.startswith(("yquo.app", "yquo.api", "yquo.config"))
-        ]
+        outward = ("slidequote.app", "slidequote.api", "slidequote.config")
+        offenders = [i for i in _imports(path) if i.startswith(outward)]
         assert not offenders, f"{_relative(path)} imports {offenders}"
 
     def test_composition_is_the_only_place_that_names_adapters(self) -> None:
@@ -120,10 +119,10 @@ class TestModelsAreBuildable:
 
         import pydantic
 
-        import yquo
+        import slidequote
 
         failures: list[str] = []
-        for module_info in pkgutil.walk_packages(yquo.__path__, prefix="yquo."):
+        for module_info in pkgutil.walk_packages(slidequote.__path__, prefix="slidequote."):
             module = importlib.import_module(module_info.name)
             for name, obj in vars(module).items():
                 if not isinstance(obj, type) or not issubclass(obj, pydantic.BaseModel):

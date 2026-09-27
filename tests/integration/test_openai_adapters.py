@@ -18,21 +18,21 @@ from uuid import uuid4
 
 import pytest
 
-from yquo.adapters.clock import ManualClock
-from yquo.adapters.memory import InMemoryRepositories
-from yquo.adapters.openai.extraction import OpenAIExtractor
-from yquo.adapters.openai.interpreter import OpenAIInterpreter
-from yquo.adapters.openai.schemas import (
+from slidequote.adapters.clock import ManualClock
+from slidequote.adapters.memory import InMemoryRepositories
+from slidequote.adapters.openai.extraction import OpenAIExtractor
+from slidequote.adapters.openai.interpreter import OpenAIInterpreter
+from slidequote.adapters.openai.schemas import (
     WireConfidenced,
     WireLine,
     WireMaterial,
     WireQuote,
     WireRequest,
 )
-from yquo.config.providers import OpenAISettings
-from yquo.domain.comms import MediaAttachment
-from yquo.domain.entities import MarkupRule, Professional
-from yquo.domain.enums import (
+from slidequote.config.providers import OpenAISettings
+from slidequote.domain.comms import MediaAttachment
+from slidequote.domain.entities import MarkupRule, Professional
+from slidequote.domain.enums import (
     ExtractionSource,
     MediaKind,
     ProfessionalChannel,
@@ -40,9 +40,9 @@ from yquo.domain.enums import (
     Unit,
     Urgency,
 )
-from yquo.domain.values import Address
-from yquo.ports.ai import ExtractionRequest
-from yquo.ports.interpreter import InterpretationRequest
+from slidequote.domain.values import Address
+from slidequote.ports.ai import ExtractionRequest
+from slidequote.ports.interpreter import InterpretationRequest
 
 START = datetime(2026, 3, 2, 9, 30, tzinfo=UTC)
 SETTINGS = OpenAISettings(api_key="sk-test-not-a-real-key")
@@ -450,7 +450,7 @@ class TestExtractor:
 
     async def test_the_requested_items_reach_the_prompt(self) -> None:
         """Without them the model cannot report what was left unquoted."""
-        from yquo.domain.entities import OrderItem
+        from slidequote.domain.entities import OrderItem
 
         adapter, _ = extractor()
         responses = stub(adapter, full_quote())
@@ -503,7 +503,7 @@ class TestExtractor:
 
 class TestKeyIsRequired:
     def test_selecting_openai_without_a_key_names_the_variable(self) -> None:
-        from yquo.config.providers import ProviderConfig
+        from slidequote.config.providers import ProviderConfig
 
-        with pytest.raises(ValueError, match="YQUO_OPENAI__API_KEY"):
+        with pytest.raises(ValueError, match="SLIDEQUOTE_OPENAI__API_KEY"):
             ProviderConfig(openai=OpenAISettings(api_key="")).require_openai()

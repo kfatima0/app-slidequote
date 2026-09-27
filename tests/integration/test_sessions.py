@@ -15,9 +15,9 @@ import httpx
 import pytest
 from asgi_lifespan import LifespanManager
 
-from yquo.api.main import SESSION_HEADER, app
-from yquo.api.sessions import SessionRegistry
-from yquo.config.settings import Settings
+from slidequote.api.main import SESSION_HEADER, app
+from slidequote.api.sessions import SessionRegistry
+from slidequote.config.settings import Settings
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -27,7 +27,7 @@ REQUEST = "Ciao, mi servono 100 metri di cavo FROR 3x2.5, consegna a Rovereto"
 
 @pytest.fixture
 async def client(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[httpx.AsyncClient]:
-    monkeypatch.setenv("YQUO_DEMO__TIME_ACCELERATION", "300")
+    monkeypatch.setenv("SLIDEQUOTE_DEMO__TIME_ACCELERATION", "300")
     async with LifespanManager(app), httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://testserver"
     ) as http:

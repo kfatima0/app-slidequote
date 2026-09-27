@@ -1,1 +1,0 @@
-"""YQuo backend."""
