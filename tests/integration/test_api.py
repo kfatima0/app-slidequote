@@ -204,3 +204,53 @@ class TestStream:
 
         assert "message_received" in kinds
         assert any(k in kinds for k in ("supplier_answered", "quotes_ranked", "order_created"))
+
+
+class TestBrowserOriginsInDevelopment:
+    """The CORS preflight, which is the first thing a browser asks and the
+    easiest to get wrong invisibly.
+
+    A refusal here arrives as a 400 on an OPTIONS request in the server log and
+    a page that silently will not load. The origin is also less fixed than it
+    looks: Astro moves to 4322 when 4321 is taken, and opening the demo from a
+    phone on the same wifi arrives as a LAN address.
+    """
+
+    @pytest.mark.parametrize(
+        "origin",
+        [
+            "http://localhost:4321",
+            "http://127.0.0.1:4321",
+            "http://localhost:4322",
+            "http://192.168.1.88:4321",
+            "http://192.168.56.1:4321",
+            "http://10.0.0.5:4321",
+            "http://172.20.1.4:4321",
+        ],
+    )
+    async def test_a_local_browser_is_allowed(
+        self, client: httpx.AsyncClient, origin: str
+    ) -> None:
+        response = await client.request(
+            "OPTIONS",
+            "/api/demo/state",
+            headers={
+                "Origin": origin,
+                "Access-Control-Request-Method": "GET",
+                "Access-Control-Request-Headers": "x-slidequote-session",
+            },
+        )
+        assert response.status_code == 200, response.text
+        assert response.headers["access-control-allow-origin"] == origin
+
+    async def test_a_stranger_is_not(self, client: httpx.AsyncClient) -> None:
+        """Demo-only or not, the pattern should still mean something."""
+        response = await client.request(
+            "OPTIONS",
+            "/api/demo/state",
+            headers={
+                "Origin": "http://evil.example.com",
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+        assert response.status_code == 400

@@ -65,13 +65,32 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(title="SlideQuote demo harness", version="0.1.0", lifespan=lifespan)
 
+#: Development origins: localhost, loopback, and the private ranges a laptop
+#: hands out on a wifi network, on any port.
+#:
+#: A pattern rather than a list of two exact strings, because the dev origin is
+#: not as fixed as it looks. Astro moves to 4322 when 4321 is taken, and opening
+#: the page from a phone on the same wifi arrives as 192.168.x.x rather than
+#: localhost. Both are ordinary while demoing, and an exact-match list refuses
+#: both with a 400 on the preflight that explains nothing to whoever is holding
+#: the phone.
+DEV_ORIGIN_PATTERN = (
+    r"http://("
+    r"localhost"
+    r"|127\.0\.0\.1"
+    r"|10\.\d{1,3}\.\d{1,3}\.\d{1,3}"
+    r"|192\.168\.\d{1,3}\.\d{1,3}"
+    r"|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}"
+    r")(:\d+)?"
+)
+
 # Only needed in development, where the Astro dev server is a separate origin.
 # A deployed build is served from this same app, so nothing is cross-origin and
 # this middleware never applies. Demo-only regardless: there is nothing here to
 # protect and no real credentials exist in this phase.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4321", "http://127.0.0.1:4321"],
+    allow_origin_regex=DEV_ORIGIN_PATTERN,
     allow_methods=["*"],
     allow_headers=["*"],
 )
